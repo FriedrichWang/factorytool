@@ -5,6 +5,7 @@
 
 import sys
 import os
+import traceback
 import subprocess
 
 PYADB_VERSION = "1.1.0"
@@ -16,7 +17,7 @@ class ADB(object):
     __output = None
     __error = None
     __return = 0
-    __devices = None
+    __devices = []
     __target = None
 
     # reboot modes
@@ -34,7 +35,7 @@ class ADB(object):
     def __init__(self, adb_path=None):
         self.__adb_path = adb_path
 
-    def __clean__(self):
+    def __clean(self):
         self.__output = None
         self.__error = None
         self.__return = 0
@@ -105,7 +106,7 @@ class ADB(object):
         """
         Runs a command by using adb tool ($ adb <cmd>)
         """
-        self.__clean__()
+        self.__clean()
 
         if self.__adb_path is None:
             self.__error = "ADB path not set"
@@ -123,13 +124,13 @@ class ADB(object):
             self.__return = adb_proc.returncode
 
             if( len(self.__output) == 0 ):
-                self.__output = None
+                self.__output = ''
 
             if( len(self.__error) == 0 ):
-                self.__error = None
+                self.__error = ''
 
         except:
-            pass
+            print(traceback.format_exc())
 
         return
 
@@ -173,7 +174,7 @@ class ADB(object):
         Starts ADB server
         adb start-server
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd('start-server')
         return self.__output
 
@@ -182,14 +183,14 @@ class ADB(object):
         Kills ADB server
         adb kill-server
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd('kill-server')
 
     def test_wifi_state(self):
         """
         Test Wifi State
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd('remount')
         self.push_local_file('wl.dat', '/system/bin')
         self.push_local_file('cfg80211.ko', '/system/lib/modules/')
@@ -204,7 +205,7 @@ class ADB(object):
         """
         Test Power State
         """
-        self.__clean__()
+        self.__clean()
         self.shell_command('cat /sys/devices/soc0/tps65185_sensor.22/temp_input')
         if self.__error is None and self.__output.strip():
             value = int(self.__output.strip())
@@ -224,7 +225,7 @@ class ADB(object):
         """
         Test BackLight State
         """
-        self.__clean__()
+        self.__clean()
         self.shell_command('echo 140 > /sys/class/backlight/pwm-backlight.0/brightness')
         self.shell_command('cat /sys/class/backlight/pwm-backlight.0/actual_brightness')
         if self.__output is not None and len(self.__output) > 0:
@@ -236,13 +237,13 @@ class ADB(object):
         """
         Test Audio State
         """
-        self.__clean__()
+        self.__clean()
         self.push_local_file('out.wav', '/data/')
         self.shell_command('tinyplay /data/out.wav')
         return 1
 
     def test_sensor(self):
-        self.__clean__()
+        self.__clean()
         self.shell_command('cat sys/bus/iio/devices/iio:device0/in_illuminance0_input')
         if self.__error is None and self.__output is not None and self.__output > 0:
             return 1
@@ -252,7 +253,7 @@ class ADB(object):
         """
         Test Record State
         """
-        self.__clean__()
+        self.__clean()
         self.push_local_file('record', '/system/bin/')
         self.shell_command('record')
         if self.__output is not None and len(self.__output) > 0:
@@ -261,7 +262,7 @@ class ADB(object):
         return 2
 
     def store_sn_data(self, sn_number):
-        self.__clean__()
+        self.__clean()
         self.shell_command('echo ' + sn_number + ' > /data/sn_number')
         if self.__error is None:
             return 1
@@ -279,7 +280,7 @@ class ADB(object):
         Restore device contents from the <file> backup archive
         adb restore <file>
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd(['restore' , file_name ])
         return self.__output
 
@@ -288,7 +289,7 @@ class ADB(object):
         Blocks until device is online
         adb wait-for-device
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd('wait-for-device')
         return self.__output
 
@@ -297,7 +298,7 @@ class ADB(object):
         Returns ADB help
         adb help
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd('help')
         return self.__output
 
@@ -307,17 +308,17 @@ class ADB(object):
         adb devices
         """
         error = 0
-        self.run_cmd("devices")        
+        self.run_cmd("devices")
         if self.__error is not None:
             return ''
         try:
             self.__devices = self.__output.partition('\n')[2].replace('device','').split()
-            
+
             if self.__devices[1:] == ['no','permissions']:
                 error = 2
-                self.__devices = None                
+                self.__devices = []
         except:
-            self.__devices = None
+            self.__devices = []
             error = 1
 
         return (error,self.__devices)
@@ -326,7 +327,7 @@ class ADB(object):
         """
         Select the device to work with
         """
-        self.__clean__()
+        self.__clean()
         if device is None or not device in self.__devices:
             self.__error = 'Must get device list first'
             self.__return = 1
@@ -345,7 +346,7 @@ class ADB(object):
         Get ADB state
         adb get-state
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd('get-state')
         return self.__output
 
@@ -354,7 +355,7 @@ class ADB(object):
         Get serialno from target device
         adb get-serialno
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd('get-serialno')
         return self.__output
 
@@ -363,7 +364,7 @@ class ADB(object):
         Reboot the target device
         adb reboot recovery/bootloader
         """
-        self.__clean__()
+        self.__clean()
         if not mode in (self.REBOOT_RECOVERY,self.REBOOT_BOOTLOADER):
             self.__error = "mode must be REBOOT_RECOVERY/REBOOT_BOOTLOADER"
             self.__return = 1
@@ -376,7 +377,7 @@ class ADB(object):
         restarts the adbd daemon with root permissions
         adb root
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd('root')
         return self.__output
 
@@ -385,7 +386,7 @@ class ADB(object):
         Mounts /system as rw
         adb remount
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd("remount")
         return self.__output
 
@@ -394,7 +395,7 @@ class ADB(object):
         Pulls a remote file
         adb pull remote local
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd(['pull',remote , local] )
 
         if self.__error is not None and "bytes in" in self.__error:
@@ -408,7 +409,7 @@ class ADB(object):
         Push a local file
         adb push local remote
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd(['push',local,remote] )
         return self.__output
 
@@ -417,7 +418,7 @@ class ADB(object):
         Executes a shell command
         adb shell <cmd>
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd(['shell',cmd])
         return self.__output
 
@@ -426,7 +427,7 @@ class ADB(object):
         Restarts the adbd daemon listening on USB
         adb usb
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd("usb")
         return self.__output
 
@@ -435,7 +436,7 @@ class ADB(object):
         Restarts the adbd daemon listening on the specified port
         adb tcpip <port>
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd(['tcpip',port])
         return self.__output
 
@@ -444,7 +445,7 @@ class ADB(object):
         Return all information from the device that should be included in a bug report
         adb bugreport
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd("bugreport")
         return self.__output
 
@@ -453,7 +454,7 @@ class ADB(object):
         List PIDs of processes hosting a JDWP transport
         adb jdwp
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd("jdwp")
         return self.__output
 
@@ -462,7 +463,7 @@ class ADB(object):
         View device log
         adb logcat <filter>
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd(['logcat',lcfilter])
         return self.__output
 
@@ -470,7 +471,7 @@ class ADB(object):
         """
         Run emulator console command
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd(['emu',cmd])
         return self.__output
     
@@ -479,7 +480,7 @@ class ADB(object):
         Connect to a device via TCP/IP
         adb connect host:port
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd(['connect',"%s:%s" % ( host , port ) ] )
         return self.__output
     
@@ -488,7 +489,7 @@ class ADB(object):
         Disconnect from a TCP/IP device
         adb disconnect host:port
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd(['disconnect',"%s:%s" % ( host , port ) ] )
         return self.__output
     
@@ -497,7 +498,7 @@ class ADB(object):
         Run PPP over USB
         adb ppp <tty> <params>
         """
-        self.__clean__()
+        self.__clean()
         if tty is None:
             return self.__output
         
@@ -513,7 +514,7 @@ class ADB(object):
         Copy host->device only if changed (-l means list but don't copy)
         adb sync <dir>
         """
-        self.__clean__()
+        self.__clean()
         self.run_cmd(['sync',directory])
         return self.__output
     
@@ -522,7 +523,7 @@ class ADB(object):
         Forward socket connections
         adb forward <local> <remote>
         """
-        self.__clean__()
+        self.__clean()
         if local is None or remote is None:
             return self.__output
         self.run_cmd(['forward',local,remote])
@@ -534,7 +535,7 @@ class ADB(object):
         Remove this app package from the device
         adb uninstall [-k] package
         """
-        self.__clean__()
+        self.__clean()
         if package is None:
             return self.__output
 
@@ -554,7 +555,7 @@ class ADB(object):
         -s -> install on sdcard instead of internal storage
         """
 
-        self.__clean__()
+        self.__clean()
         if pkgapp is None:
             return self.__output
         
