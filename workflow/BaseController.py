@@ -9,16 +9,6 @@ from setting import Setting as Env
 
 class BaseController(IController):
 
-    def __init__(self):
-        self.id = 0
-        self.action = None
-        self.tag = ""
-        self.stamp = None
-        self.result = 0
-        self.service = None
-        self.listener = None
-        self.sub_process = -1
-
     def __init__(self, _id, _stamp_bundle, _listener):
         self.id = _id
         self.stamp = _stamp_bundle

@@ -9,10 +9,6 @@ WEIGHT = "weight"
 
 
 class WeightController(BaseController):
-
-    def __init__(self):
-        BaseController.__init__(self)
-
     def __init__(self, _id, _stamp, _listener):
         BaseController.__init__(self, _id, _stamp, _listener)
         self.action = Action()

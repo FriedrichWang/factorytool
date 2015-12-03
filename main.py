@@ -51,11 +51,12 @@ mark = 0
 
 
 class MainListener(Listener):
-
     def __init__(self):
         Listener.__init__(self)
 
     def on_result(self, _request_id, _response_code, _stamp_bundle, _sub_process=0):
+        print('on_result request_id(%s) response_code(%s) stamp_bundle(%s) sub_process(%s)' % \
+              (_request_id, _response_code, _stamp_bundle, _sub_process))
         if _response_code == Env.RESULT_FINISH:
             state_label_var.set(u'准备Smt测试')
             state_label['background'] = '#00BFFF'
@@ -98,9 +99,9 @@ class Task(Thread):
 
 
 def initialize():
-    _rom_controller = RomController(0, stamp_bundle, listener)
-    controllers.append(_rom_controller)
-    title_list.append(u'rom烧写')
+    #_rom_controller = RomController(0, stamp_bundle, listener)
+    #controllers.append(_rom_controller)
+    #title_list.append(u'rom烧写')
     _sn_controller = SnController(1, stamp_bundle, listener)
     controllers.append(_sn_controller)
     title_list.append(u'Sn烧录')
@@ -131,6 +132,7 @@ def initialize():
 
 
 def start_run():
+    print('Running')
     state_label['background'] = '#00BFFF'
     state_indicator['background'] = '#00BFFF'
     if context.mark == 1:
@@ -169,9 +171,10 @@ if __name__ == '__main__':
     state_indicator.pack(side=LEFT)
     control_frame = LabelFrame(label_frame)
     control_frame.pack(side=BOTTOM, fill="both", expand="yes")
-    start_button = Button(control_frame, text=u'开始测试', font=("Arial", 12), width=15, height=3, command=start_run)
+    #start_button = Button(control_frame, text=u'开始测试', font=("Arial", 12), width=15, height=3, command=start_run)
     stop_button = Button(control_frame, text=u'标记失败', font=("Arial", 12), width=15, height=3, command=stop_test)
-    start_button.pack(side=LEFT)
+    #start_button.pack(side=LEFT)
+    root.after(2000, start_run)
     stop_button.pack(side=RIGHT)
     stop_button['state'] = DISABLED
     sn_input = Entry(control_frame)
@@ -179,5 +182,3 @@ if __name__ == '__main__':
     sn_input['state'] = DISABLED
     root.resizable(width=False, height=False)
     root.mainloop()
-
-

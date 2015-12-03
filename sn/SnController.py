@@ -8,19 +8,12 @@ from setting import Setting as Env
 
 
 class SnController(BaseController):
-
-    def __init__(self):
-        BaseController.__init__(self)
-        self.action = Action()
-
     def __init__(self, _id, _stamp, _listener):
         BaseController.__init__(self, _id, _stamp, _listener)
         self.action = Action()
 
     def handle_action(self, _request_code, _input_bundle):
         _result = self.action.on_action(_request_code, _input_bundle, self.stamp)
-        #self.web_service.reload_url(Env.BASE_STEP_URL.
-        #                            format(_input_bundle.params[Env.STEP], _input_bundle.params[Env.ID], _result))
         if _result == Env.RESULT_OK:
             _body = self.web_service.make_request(self.stamp.params, json.dumps(self.stamp.params["snNumber"]))
             _smt_body = json.loads(_body, encoding='utf-8')

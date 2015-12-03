@@ -7,11 +7,6 @@ from setting import Setting as Env
 
 
 class AdbController(BaseController):
-
-    def __init__(self):
-        BaseController.__init__(self)
-        self.__subprocess = 0
-
     def __init__(self, _id, _stamp, _listener):
         BaseController.__init__(self, _id, _stamp, _listener)
         self.action = Action()

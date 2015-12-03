@@ -2,20 +2,11 @@ __author__ = 'friedrich'
 
 from workflow.BaseController import BaseController
 from adjust.AdjustAction import AdjustAction as Action
-from setting import Setting as Env
 from workflow.WebService import WebService
-import json
 
 ADJUST = "adjust"
 
-
 class AdjustController(BaseController):
-
-    def __init__(self):
-        BaseController.__init__(self)
-        self.action = Action()
-        self.web_service = WebService()
-
     def __init__(self, _id, _stamp, _listener):
         BaseController.__init__(self, _id, _stamp, _listener)
         self.action = Action()
