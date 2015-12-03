@@ -21,9 +21,10 @@ class FlowContext(object):
         self.input_bundle = _input_bundle
 
     def start_loop(self, sub_process=-1):
-        for _controller in self.work_queue:
+        while self.mark < len(self.work_queue):
             _controller = self.work_queue[self.mark]
             _controller.init()
+            self.mark += 1
     
             _result = _controller.handle_action(self.result, self.input_bundle)
             if _result == Env.RESULT_OK:
