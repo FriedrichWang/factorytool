@@ -15,6 +15,7 @@ from Tkinter import StringVar
 from Tkinter import DISABLED
 from Tkinter import NORMAL
 from Tkinter import Entry
+from tkFont import Font
 
 from workflow.FlowContext import FlowContext as Context
 from workflow.Bundle import Bundle
@@ -32,6 +33,7 @@ from printtag.PrintController import PrintController
 from weight.WeightController import WeightController
 from setting import Setting as Env
 
+root = Tk()
 input_bundle = Bundle()
 stamp_bundle = Bundle()
 controllers = []
@@ -41,62 +43,49 @@ state_label = None
 state_label_var = None
 state_indicator = None
 state_indicator_var = None
-start_button = None
-stop_button = None
+success_button = None
+failed_button = None
 sn_input = None
 title_list = []
 
 state_code = Env.RESULT_OK
 mark = 0
 
-
 class MainListener(Listener):
     def __init__(self):
         Listener.__init__(self)
-
-    def on_result(self, _request_id, _response_code, _stamp_bundle, _sub_process=0):
-        print('on_result request_id(%s) response_code(%s) stamp_bundle(%s) sub_process(%s)' % \
-              (_request_id, _response_code, _stamp_bundle, _sub_process))
-        if _response_code == Env.RESULT_FINISH:
-            state_label_var.set(u'准备Smt测试')
-            state_label['background'] = '#00BFFF'
-            state_indicator['background'] = '#00BFFF'
-            start_button['text'] = u'开始测试'
-            stop_button['state'] = DISABLED
-            return
-        if _request_id == 0:
+        
+    def onResponse(self, controller, response):
+        if response['ret'] == 0:
+            self.onFailed(controller)
+        else:
+            self.onSuccess(controller)
+            
+    def onInitUI(self, controller):
+        if controller and hasattr(controller, 'entry'):
             sn_input['state'] = NORMAL
         else:
             sn_input['state'] = DISABLED
-        if _request_id == 2:
-            state_label_var.set(Env.SMT_TEST_SUB_PROCESS[_sub_process - 1])
-            if _sub_process == 6:
-                start_button['text'] = u'上传报告'
-            else:
-                stop_button['state'] = NORMAL
-        else:
-            state_label_var.set(title_list[_request_id])
-            context.mark_up()
-            start_button['text'] = u'继续测试'
-            stop_button['state'] = DISABLED
-        if _response_code == Env.RESULT_OK:
-            state_indicator_var.set(u'成功')
-            state_label['background'] = '#2E8B57'
-            state_indicator['background'] = '#2E8B57'
-        else:
-            state_indicator_var.set(u'失败')
-            state_label['background'] = '#DC143C'
-            state_indicator['background'] = '#DC143C'
 
+    def onFailed(self, controller):
+        state_indicator_var.set(u'失败')
+        state_label['background'] = '#DC143C'
+        state_indicator['background'] = '#DC143C'
+        
+    def onSuccess(self, controller):
+        state_indicator_var.set(u'成功')
+        state_label['background'] = '#2E8B57'
+        state_indicator['background'] = '#2E8B57'
+        
+    def onContinue(self, controller):
+        success_button['state'] = NORMAL
+        failed_button['state'] = NORMAL
 
 listener = MainListener()
 
-
 class Task(Thread):
-
     def run(self):
         context.run()
-
 
 def initialize():
     #_rom_controller = RomController(0, stamp_bundle, listener)
@@ -129,30 +118,55 @@ def initialize():
     #_weight_controller = WeightController(10, stamp_bundle, listener)
     #controllers.append(_weight_controller)
     #title_list.append(u'彩盒称重')
-
-
-def start_run():
-    print('Running')
+    
+def label_normal():
     state_label['background'] = '#00BFFF'
     state_indicator['background'] = '#00BFFF'
+
+def label_success():
+    state_label['background'] = '#00BFFF'
+    state_indicator['background'] = '#00BFFF'
+
+def label_failed():
+    state_label['background'] = '#00BFFF'
+    state_indicator['background'] = '#00BFFF'
+
+def _start_run():
+    print('Running')
+    label_normal()
     if context.mark == 1:
         input_bundle.params['sn_number'] = sn_input.get()
     context.run()
+    
+def disable_buttons():
+    success_button['state'] = DISABLED
+    failed_button['state'] = DISABLED
+    
+def start_run():
+    print('wait running')
+    disable_buttons()
+    root.after(300, _start_run)
 
-
-def stop_test():
+def on_failed_button():
+    disable_buttons()
     _retval = context.report_failure()
     if _retval == Env.RESULT_FAILED:
         context.clear()
     state_indicator_var.set(u'失败')
     state_label['background'] = '#DC143C'
     state_indicator['background'] = '#DC143C'
+    start_run()
+    
+def on_success_button():
+    disable_buttons()
 
+    state_label['background'] = '#DC143C'
+    state_indicator['background'] = '#DC143C'
+    start_run()
 
 if __name__ == '__main__':
     initialize()
     context.init_controller(controllers)
-    root = Tk()
     state_label_var = StringVar()
     state_indicator_var = StringVar()
     title = u'产线工具'
@@ -171,13 +185,13 @@ if __name__ == '__main__':
     state_indicator.pack(side=LEFT)
     control_frame = LabelFrame(label_frame)
     control_frame.pack(side=BOTTOM, fill="both", expand="yes")
-    #start_button = Button(control_frame, text=u'开始测试', font=("Arial", 12), width=15, height=3, command=start_run)
-    stop_button = Button(control_frame, text=u'标记失败', font=("Arial", 12), width=15, height=3, command=stop_test)
-    #start_button.pack(side=LEFT)
-    root.after(2000, start_run)
-    stop_button.pack(side=RIGHT)
-    stop_button['state'] = DISABLED
-    sn_input = Entry(control_frame)
+    success_button = Button(control_frame, text=u'成功', font=("Arial", 12), width=15, height=3, command=on_success_button)
+    failed_button = Button(control_frame, text=u'失败', font=("Arial", 12), width=15, height=3, command=on_failed_button)
+    success_button.pack(side=LEFT)
+    start_run()
+    failed_button.pack(side=RIGHT)
+    failed_button['state'] = DISABLED
+    sn_input = Entry(control_frame, width=50, font=Font(size=42))
     sn_input.pack()
     sn_input['state'] = DISABLED
     root.resizable(width=False, height=False)

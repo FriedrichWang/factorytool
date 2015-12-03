@@ -3,7 +3,6 @@ from workflow.Action import Action
 
 
 class BaseAction(Action):
-
     def __init__(self):
         Action.__init__(self)
 

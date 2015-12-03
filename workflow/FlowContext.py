@@ -18,30 +18,28 @@ class FlowContext(object):
         self.mark = 0
 
     def init_controller(self, _controllers):
-        for controller in _controllers:
-            self.work_queue.append(controller)
-
-    def mark_up(self):
-        self.mark += 1
+        self.work_queue.extend(_controllers)
 
     def set_input(self, _input_bundle):
         self.input_bundle = _input_bundle
 
     def start_loop(self, sub_process=-1):
-        _controller = self.work_queue[self.mark]
-
-        _result = _controller.handle_action(self.result, self.input_bundle)
-        if _result == Env.RESULT_OK:
-            _controller.handle_successful(self.result, self.stamp_bundle)
-            self.result = Env.RESULT_OK
-        elif _result == Env.RESULT_FAILED:
-            _controller.handle_failure(self.result, self.stamp_bundle)
-            self.result = Env.RESULT_FAILED
-        elif _result == Env.RESULT_FINISH:
-            self.clear()
-        else:
-            _controller.handle_failure(self.result, self.stamp_bundle)
-            self.result = Env.RESULT_FAILED
+        for _controller in self.work_queue:
+            _controller = self.work_queue[self.mark]
+            _controller.init()
+    
+            _result = _controller.handle_action(self.result, self.input_bundle)
+            if _result == Env.RESULT_OK:
+                _controller.handle_successful(self.result, self.stamp_bundle)
+                self.result = Env.RESULT_OK
+            elif _result == Env.RESULT_FAILED:
+                _controller.handle_failure(self.result, self.stamp_bundle)
+                self.result = Env.RESULT_FAILED
+            elif _result == Env.RESULT_FINISH:
+                self.clear()
+            else:
+                _controller.handle_failure(self.result, self.stamp_bundle)
+                self.result = Env.RESULT_FAILED
 
     def stamp_result(self):
         if self.stamp_bundle is not None and self.stamp_bundle.params is not None:

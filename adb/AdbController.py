@@ -1,39 +1,38 @@
+#encoding=utf8
 __author__ = 'friedrich'
-import json
 
+import json
 from workflow.BaseController import BaseController
 from adb.AdbAction import AdbAction as Action
-from setting import Setting as Env
-
+from setting import Setting
 
 class AdbController(BaseController):
     def __init__(self, _id, _stamp, _listener):
         BaseController.__init__(self, _id, _stamp, _listener)
         self.action = Action()
         self.__subprocess = 0
+        self.SMT_TEST_SUB_PROCESS = [u'wifi测试', u'屏幕测试', u'背光测试', u'传感器测试', u'音频测试', u'录音测试', u'上传报告']
+    
+    def get_label(self):
+        return self.name
 
     def handle_action(self, _request_code, _input_bundle):
-        if self.__subprocess != 6:
-            _result = self.action.on_action(_request_code, _input_bundle, self.stamp, self.__subprocess)
-            self.__subprocess += 1
-            if self.listener is not None:
-                self.listener.on_result(self.id, _result, self.stamp, self.__subprocess)
-            return _result
-        else:
-            self.web_service.reload_url(Env.BASE_STEP_URL.format(_input_bundle.params[Env.STEP],
-                                                                 _input_bundle.params[Env.ID], Env.RESULT_OK))
-            self.stamp.params["product_test"]["state"] = self.action.is_passed()
-            _body = self.web_service.make_request(self.stamp.params, json.dumps(self.stamp.params["product_test"]))
-            _smt_body = json.loads(_body, encoding='utf-8')
-            self.stamp.params[Env.ID] = _smt_body[u'id']
-            _input_bundle.params[Env.ID] = _smt_body[u'id']
-            _input_bundle.params[Env.STEP] = _smt_body[u'step']
+        result = None
 
-            if self.listener is not None:
-                self.listener.on_result(self.id, Env.RESULT_FINISH, self.stamp, self.__subprocess)
-                self.__subprocess = 0
-                self.action.clear()
-            return Env.RESULT_FINISH
+        while (self.__subprocess <= len(self.SMT_TEST_SUB_PROCESS)):
+            self.name = self.SMT_TEST_SUB_PROCESS[self.__subprocess - 1]
+            result = self.action.on_action(_request_code, _input_bundle, self.stamp, self.__subprocess)
+            self.__subprocess += 1
+            if result == Setting.RESULT_CONTINUE:
+                self.listener.onContinue(self)
+                break
+        if result != Setting.RESULT_CONTINUE and self.__subprocess > len(self.SMT_TEST_SUB_PROCESS):
+            url = Setting.BASE_STEP_URL.format(_input_bundle.params[Setting.STEP], _input_bundle.params[Setting.ID], result)
+            self.stamp.params["product_test"]["state"] = self.action.is_passed()
+            resp = self.web_service.make_request(url, self.stamp.params, json.dumps(self.stamp.params["product_test"]))
+            self.__subprocess = 0
+            self.action.clear()
+            return resp['ret']
 
     def report_failure(self):
         if self.__subprocess == 1:
@@ -49,10 +48,4 @@ class AdbController(BaseController):
         elif self.__subprocess == 6:
             self.stamp.params["product_test"]["record"] = 0
         self.action.mark_failed()
-        return Env.RESULT_NONSTOP_FAILED
-
-    def handle_successful(self, request_code, stamp_bundle):
-        pass
-
-    def handle_failure(self, request_code, stamp_bundle):
-        pass
+        return Setting.RESULT_NONSTOP_FAILED

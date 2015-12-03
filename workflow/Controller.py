@@ -6,6 +6,9 @@ class IController(object):
     def __init__(self):
         pass
 
+    def init(self):
+        pass
+
     def handle_action(self, request_code, input_bundle):
         pass
 

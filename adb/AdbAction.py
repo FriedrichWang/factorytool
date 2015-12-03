@@ -7,9 +7,7 @@ from setting import Setting as Env
 
 PRODUCT_TEST = "product_test"
 
-
 class AdbAction(BaseAction):
-
     def __init__(self):
         BaseAction.__init__(self)
         self.service = Service()
