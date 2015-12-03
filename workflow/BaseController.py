@@ -17,13 +17,13 @@ class BaseController(IController):
             self.web_service = WebService()
         self.sub_process = -1
         self.name = ''
-        
+
     def get_name(self):
         return self.name
-        
+
     def init(self):
         self.listener.onInitUI(self)
-        
+
     def web_commit(self, _input_bundle, _result):
         url = Setting.BASE_STEP_URL.format(_input_bundle.params[Setting.STEP],
                                        _input_bundle.params[Setting.ID], _result)
@@ -43,7 +43,9 @@ class BaseController(IController):
 
         _result = self.action.on_action(_request_code, _input_bundle, self.stamp)
         resp = self.web_commit(_input_bundle, _result)
-
+        _input_bundle.params['sn'] = resp[u'sn']
+        _input_bundle.params['step'] = resp[u'step']
         if self.listener is not None:
             self.listener.onResponse(self, resp)
         return _result
+

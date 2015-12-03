@@ -33,32 +33,36 @@ class MainListener(Listener):
     def __init__(self, mainwin):
         Listener.__init__(self)
         self.win = mainwin
-        
+
     def onResponse(self, controller, response):
         if response['ret'] == 0:
             self.onFailed(controller)
         else:
             self.onSuccess(controller)
-            
+
     def onInitUI(self, controller):
         if controller and hasattr(controller, 'entry'):
             self.win.sn_input['state'] = NORMAL
         else:
             self.win.sn_input['state'] = DISABLED
 
+        print '==>', controller.get_name()
+        self.win.label_text(controller.get_name())
+
     def onFailed(self, controller):
-        self.win.state_indicator_var.set(u'失败')
-        self.win.state_label['background'] = '#DC143C'
-        self.win.state_indicator['background'] = '#DC143C'
-        
+        self.win.status_text(u'失败 Failed')
+
     def onSuccess(self, controller):
-        self.win.state_indicator_var.set(u'成功')
-        self.win.state_label['background'] = '#2E8B57'
-        self.win.state_indicator['background'] = '#2E8B57'
-        
+        self.win.status_text(u'成功 Pass')
+
     def onContinue(self, controller):
         self.win.success_button['state'] = NORMAL
         self.win.failed_button['state'] = NORMAL
+
+    def onFinish(self, controller):
+        # NOTICE: controller is None
+        print('finish')
+        self.win.status_text(u'完成 Pass')
 
 class MainWindow():
     def __init__(self):
@@ -66,7 +70,6 @@ class MainWindow():
         self.input_bundle = Bundle()
         self.stamp_bundle = Bundle()
         self.controllers = []
-        self.context = Context(self.input_bundle, self.stamp_bundle)
         self.main_frame = None
         self.state_label = None
         self.state_label_var = None
@@ -80,6 +83,7 @@ class MainWindow():
         self.state_code = Setting.RESULT_OK
         self.mark = 0
         self.listener = MainListener(self)
+        self.context = Context(self.input_bundle, self.stamp_bundle, self.listener)
         self.main()
         
     def main(self):
@@ -160,12 +164,12 @@ class MainWindow():
         #_weight_controller = WeightController(10, stamp_bundle, listener)
         #controllers.append(_weight_controller)
         #title_list.append(u'彩盒称重')
-    
+
     def label_normal(self, text=None):
         self.state_label['background'] = '#00BFFF'
         self.state_indicator['background'] = '#00BFFF'
         if text is not None: self.label_failed(str(text))
-    
+
     def label_success(self, text=None):
         self.state_label['background'] = '#00BFFF'
         self.state_indicator['background'] = '#00BFFF'
@@ -175,24 +179,34 @@ class MainWindow():
         self.state_label['background'] = '#00BFFF'
         self.state_indicator['background'] = '#00BFFF'
         if text is not None: self.label_failed(str(text))
-        
+
     def label_text(self, text):
         self.state_label_var.set(text)
-    
+        self.root.update()
+
+    def status_text(self, text):
+        self.state_indicator_var.set(text)
+        if text.endswith('Pass'):
+            self.state_label['background'] = '#2E8B57'
+            self.state_indicator['background'] = '#2E8B57'
+        else:
+            self.state_label['background'] = '#DC143C'
+            self.state_indicator['background'] = '#DC143C'
+
     def _start_run(self):
         print('Running')
         self.label_normal()
         self.context.run()
-        
+
     def disable_buttons(self):
         self.success_button['state'] = DISABLED
         self.failed_button['state'] = DISABLED
-        
+
     def start_run(self):
         print('wait running')
         self.disable_buttons()
         self.root.after(300, self._start_run)
-    
+
     def on_failed_button(self):
         self.disable_buttons()
         self._retval = self.context.report_failure()
@@ -202,10 +216,10 @@ class MainWindow():
         self.state_label['background'] = '#DC143C'
         self.state_indicator['background'] = '#DC143C'
         self.start_run()
-        
+
     def on_success_button(self):
         self.disable_buttons()
-    
+
         self.state_label['background'] = '#DC143C'
         self.state_indicator['background'] = '#DC143C'
         self.start_run()

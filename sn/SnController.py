@@ -1,3 +1,4 @@
+#encoding=utf8
 __author__ = 'friedrich'
 
 import json
@@ -11,6 +12,7 @@ class SnController(BaseController):
         BaseController.__init__(self, _id, _stamp, _listener)
         self.action = Action()
         self.entry = 'SN: '
+        self.name = '写入SN'
 
     def checkstep(self):
         # Special step, not to check with server

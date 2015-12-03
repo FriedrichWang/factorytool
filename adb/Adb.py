@@ -207,15 +207,17 @@ class ADB(object):
         """
         self.__clean()
         self.shell_command('cat /sys/devices/soc0/tps65185_sensor.22/temp_input')
-        if self.__error is None and self.__output.strip():
-            value = int(self.__output.strip())
+        value = self.__output
+        if len(self.__error) == 0 and len(value) > 0:
+            value = int(value.strip())
             if value < 50 and value > 0:
                 self.shell_command('cat /sys/class/power_supply/battery/voltage_now')
-                value = int(self.__output.strip())
-                if value > 3500 and value < 4250:
-                    return 1
-                else:
-                    return 2
+                if len(self.__error) == 0:
+                    value = int(self.__output.strip())
+                    if value > 3500 and value < 4250:
+                        return 1
+                    else:
+                        return 2
             else:
                 return 2
         else:
@@ -238,14 +240,16 @@ class ADB(object):
         Test Audio State
         """
         self.__clean()
-        self.push_local_file('out.wav', '/data/')
-        self.shell_command('tinyplay /data/out.wav')
-        return 1
+        self.shell_command('cat /sys/class/sound/pcmC0D0c/device/id')
+        self.shell_command('cat /sys/class/sound/pcmC0D0p/device/id')
+        if self.__output is not None and len(self.__output) > 0:
+            return 1
+        return 2
 
     def test_sensor(self):
         self.__clean()
         self.shell_command('cat sys/bus/iio/devices/iio:device0/in_illuminance0_input')
-        if self.__error is None and self.__output is not None and self.__output > 0:
+        if self.__output is not None and len(self.__output) > 0:
             return 1
         return 2
 
@@ -254,7 +258,8 @@ class ADB(object):
         Test Record State
         """
         self.__clean()
-        self.push_local_file('record', '/system/bin/')
+        self.run_cmd('remount')
+        self.push_local_file('adb/record', '/system/bin/')
         self.shell_command('record')
         if self.__output is not None and len(self.__output) > 0:
             if self.__output == '100\r\n':
@@ -263,7 +268,7 @@ class ADB(object):
 
     def store_sn_data(self, sn_number):
         self.__clean()
-        self.shell_command('echo ' + sn_number + ' > /data/sn_number')
+        self.shell_command('echo "' +  str(sn_number) + '" > /data/sn_number')
         if self.__error is None:
             return 1
         return 2
