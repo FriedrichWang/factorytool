@@ -9,7 +9,11 @@ BASE_CHECKSTEP_URL = BASE_HOST + 'checkstep/%(step)s/%(sn)s'
 SN_URL = BASE_HOST + "sn/{0}"
 ADJUST_URL = BASE_HOST + "adjust/{0}"
 
-ADB_PATH = "/home/friedrich/sdk/platform-tools/adb"
+import sys
+if sys.platform == 'win32':
+    ADB_PATH = 'bin/adb.exe'
+else:
+    ADB_PATH = "adb"
 
 ID = "sn"
 STEP = "step"
