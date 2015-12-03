@@ -1,8 +1,4 @@
-#!/bin/python
-# -*- coding: utf-8 -*-
 #coding=utf-8
-
-from threading import Thread
 from Tkinter import Tk
 from Tkinter import Label
 from Tkinter import LEFT
@@ -31,7 +27,7 @@ from bookset.BookSetController import BookSetController
 from reset.ResetController import ResetController
 from printtag.PrintController import PrintController
 from weight.WeightController import WeightController
-from setting import Setting as Env
+from setting import Setting
 
 class MainListener(Listener):
     def __init__(self, mainwin):
@@ -81,7 +77,7 @@ class MainWindow():
         self.sn_input = None
         self.title_list = []
         
-        self.state_code = Env.RESULT_OK
+        self.state_code = Setting.RESULT_OK
         self.mark = 0
         self.listener = MainListener(self)
         self.main()
@@ -114,13 +110,20 @@ class MainWindow():
         self.failed_button = Button(self.control_frame, text=u'失败', font=("Arial", 12),
                                     width=15, height=3, command=self.on_failed_button)
         self.success_button.pack(side=LEFT)
-        self.start_run()
         self.failed_button.pack(side=RIGHT)
         self.failed_button['state'] = DISABLED
         self.sn_input = Entry(self.control_frame, width=50, font=Font(size=42))
         self.sn_input.pack()
         self.sn_input['state'] = DISABLED
+        self.sn_input.bind("<KeyRelease-Return>", self.on_sn_input)
         self.root.resizable(width=False, height=False)
+        if Setting.DEBUG:
+            self.label_text('Debug!!!')
+        
+    def on_sn_input(self, event):
+        self.input_bundle.params['sn_number'] = self.sn_input.get()
+        print('sn %s' % self.sn_input.get())
+        self.start_run()
         
     def loop(self):
         print('mainloop')
@@ -158,23 +161,27 @@ class MainWindow():
         #controllers.append(_weight_controller)
         #title_list.append(u'彩盒称重')
     
-    def label_normal(self):
+    def label_normal(self, text=None):
         self.state_label['background'] = '#00BFFF'
         self.state_indicator['background'] = '#00BFFF'
+        if text is not None: self.label_failed(str(text))
     
-    def label_success(self):
+    def label_success(self, text=None):
         self.state_label['background'] = '#00BFFF'
         self.state_indicator['background'] = '#00BFFF'
-    
-    def label_failed(self):
+        if text is not None: self.label_failed(str(text))
+
+    def label_failed(self, text=None):
         self.state_label['background'] = '#00BFFF'
         self.state_indicator['background'] = '#00BFFF'
+        if text is not None: self.label_failed(str(text))
+        
+    def label_text(self, text):
+        self.state_label_var.set(text)
     
     def _start_run(self):
         print('Running')
         self.label_normal()
-        if self.context.mark == 1:
-            self.input_bundle.params['sn_number'] = self.sn_input.get()
         self.context.run()
         
     def disable_buttons(self):
@@ -189,7 +196,7 @@ class MainWindow():
     def on_failed_button(self):
         self.disable_buttons()
         self._retval = self.context.report_failure()
-        if self._retval == Env.RESULT_FAILED:
+        if self._retval == Setting.RESULT_FAILED:
             self.context.clear()
         self.state_indicator_var.set(u'失败')
         self.state_label['background'] = '#DC143C'

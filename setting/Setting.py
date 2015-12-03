@@ -31,3 +31,5 @@ DEVICE_SERIAL = "e70a976b"
 DEFAULT_HOME = "/home/friedrich/"
 DEFAULT_ZIP_DIC = DEFAULT_HOME + "adjust_zip/"
 DEFAULT_FILE = DEFAULT_HOME + "/adjust/"
+
+DEBUG = True

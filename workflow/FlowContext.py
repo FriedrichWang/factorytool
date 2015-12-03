@@ -1,9 +1,7 @@
 __author__ = 'friedrich'
 import json
 
-from workflow.WebService import WebService
 from setting import Setting as Env
-
 
 class FlowContext(object):
 
@@ -12,7 +10,6 @@ class FlowContext(object):
         self.input_bundle = _input_bundle
         self.stamp_bundle = _stamp_bundle
         self.result = Env.RESULT_UNKNOWN
-        self.service = WebService()
         self.input_bundle.params[Env.ID] = -1
         self.input_bundle.params[Env.STEP] = 1
         self.mark = 0

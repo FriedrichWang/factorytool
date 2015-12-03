@@ -3,7 +3,7 @@ __author__ = 'friedrich'
 
 from json import loads as jloads
 from workflow.Controller import IController
-from workflow.WebService import WebService as WebService
+from workflow.WebService import WebService, FakeWebService
 from setting import Setting
 
 class BaseController(IController):
@@ -11,7 +11,10 @@ class BaseController(IController):
         self.step = _step
         self.stamp = _stamp_bundle
         self.listener = _listener
-        self.web_service = WebService()
+        if Setting.DEBUG:
+            self.web_service = FakeWebService()
+        else:
+            self.web_service = WebService()
         self.sub_process = -1
         self.name = ''
         

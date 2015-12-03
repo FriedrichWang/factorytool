@@ -13,6 +13,7 @@ class SnController(BaseController):
         self.entry = 'SN: '
 
     def checkstep(self):
+        # Special step, not to check with server
         return {'ret': 1, 'desc': 'First Step'}
 
     def handle_successful(self, request_code, stamp_bundle):

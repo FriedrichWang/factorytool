@@ -21,4 +21,11 @@ class WebService(object):
         try:
             return jloads(content)
         except:
-            return {'ret': False, 'desc': 'Program exception %s' % traceback.format_exc()}
+            return {'ret': 0, 'desc': 'Program exception %s' % traceback.format_exc()}
+        
+class FakeWebService(WebService):
+    def make_request(self, url, _params={}, _entity=''):
+        return {'ret': 1, 'desc': 'Debug pass'}
+
+    def upload_request(self, url, _file):
+        return {'ret': 1, 'desc': 'Debug pass'}

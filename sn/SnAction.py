@@ -12,11 +12,10 @@ class SnAction(BaseAction):
     def __init__(self):
         BaseAction.__init__(self)
         self.service = Service()
-        self.web_service = WebService()
 
     def on_action(self, _request_code, _params_bundle, _stamp_bundle):
         url = Setting.SN_URL.format(_params_bundle.params[Setting.ID])
-        body = dict()
+        body = {}
         body['pcsId'] = _params_bundle.params[Setting.ID]
         body['productCode'] = "C1"
         body['hardwareCode'] = "Y1"
