@@ -1,7 +1,6 @@
 #encoding=utf8
 __author__ = 'friedrich'
 
-import json
 from workflow.BaseController import BaseController
 from adb.AdbAction import AdbAction as Action
 from setting import Setting
@@ -29,7 +28,7 @@ class AdbController(BaseController):
         if result != Setting.RESULT_CONTINUE and self.__subprocess > len(self.SMT_TEST_SUB_PROCESS):
             url = Setting.BASE_STEP_URL.format(_input_bundle.params[Setting.STEP], _input_bundle.params[Setting.ID], result)
             self.stamp.params["product_test"]["state"] = self.action.is_passed()
-            resp = self.web_service.make_request(url, self.stamp.params, json.dumps(self.stamp.params["product_test"]))
+            resp = self.web_service.make_request(url, self.stamp.params, self.stamp.params["product_test"])
             self.__subprocess = 0
             self.action.clear()
             return resp['ret']

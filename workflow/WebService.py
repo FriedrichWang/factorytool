@@ -2,14 +2,14 @@ __author__ = 'friedrich'
 
 import requests
 import traceback
-from json import loads as jloads
+from json import loads as jloads, dumps as jdumps
 
 class WebService(object):
     def __init__(self):
         pass
 
-    def make_request(self, url, _params={}, _entity=''):
-        _result = requests.post(url, params=_params, data=_entity)
+    def make_request(self, url, _params={}, _entity={}):
+        _result = requests.post(url, params=_params, data=jdumps(_entity))
         return self.jsonloads(_result.text)
 
     def upload_request(self, url, _file):
