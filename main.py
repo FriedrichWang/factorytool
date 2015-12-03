@@ -114,14 +114,14 @@ class MainWindow():
         self.failed_button['state'] = DISABLED
         self.sn_input = Entry(self.control_frame, width=50, font=Font(size=42))
         self.sn_input.pack()
-        self.sn_input['state'] = DISABLED
+        self.disable_buttons()
         self.sn_input.bind("<KeyRelease-Return>", self.on_sn_input)
         self.root.resizable(width=False, height=False)
         if Setting.DEBUG:
             self.label_text('Debug!!!')
         
     def on_sn_input(self, event):
-        self.input_bundle.params['sn_number'] = self.sn_input.get()
+        self.input_bundle.params[Setting.ID] = self.sn_input.get()
         print('sn %s' % self.sn_input.get())
         self.start_run()
         

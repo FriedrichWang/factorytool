@@ -27,13 +27,12 @@ class BaseController(IController):
     def web_commit(self, _input_bundle, _result):
         url = Setting.BASE_STEP_URL.format(_input_bundle.params[Setting.STEP],
                                        _input_bundle.params[Setting.ID], _result)
-        _body = self.web_service.make_request(url, self.stamp.params, _input_bundle.params)
-        _smt_body = self.jsonloads(_body)
-        return _smt_body
-        
+        resp = self.web_service.make_request(url, self.stamp.params, _input_bundle.params)
+        return resp
+
     def checkstep(self):
         url = Setting.BASE_CHECKSTEP_URL % {'step': self.step, 'sn': self.stamp[Setting.ID]}
-        resp = self.jsonloads(self.web_service.make_request(url))
+        resp = self.web_service.make_request(url)
         return resp
 
     def handle_action(self, _request_code, _input_bundle):
