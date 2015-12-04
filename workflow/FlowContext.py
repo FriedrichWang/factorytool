@@ -35,7 +35,7 @@ class FlowContext(object):
                 _controller.handle_failure(self.result, self.stamp_bundle)
                 self.result = Env.RESULT_FAILED
             elif _result == Env.RESULT_CONTINUE:
-                pass
+                break
             else:
                 raise RuntimeError('unknown result %s' % _result)
             if _result != Env.RESULT_CONTINUE:

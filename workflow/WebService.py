@@ -3,6 +3,7 @@ __author__ = 'friedrich'
 import requests
 import traceback
 from json import loads as jloads, dumps as jdumps
+from setting import Setting
 
 class WebService(object):
     def __init__(self):
@@ -25,7 +26,8 @@ class WebService(object):
         
 class FakeWebService(WebService):
     def make_request(self, url, _params={}, _entity=''):
-        return {'ret': 1, 'desc': 'Debug pass'}
+        return {'ret': 1, 'desc': 'Debug pass', Setting.ID: _params[Setting.ID],
+                Setting.STEP: _params[Setting.STEP]}
 
     def upload_request(self, url, _file):
-        return {'ret': 1, 'desc': 'Debug pass'}
+        return {'ret': 1, 'desc': 'Debug pass', Setting.ID: 'test_sn'}

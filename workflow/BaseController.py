@@ -27,6 +27,8 @@ class BaseController(IController):
     def web_commit(self, _input_bundle, _result):
         url = Setting.BASE_STEP_URL.format(_input_bundle.params[Setting.STEP],
                                        _input_bundle.params[Setting.ID], _result)
+        self.stamp.params[Setting.STEP] = _input_bundle.params[Setting.STEP]
+        self.stamp.params[Setting.ID] = _input_bundle.params[Setting.ID]
         resp = self.web_service.make_request(url, self.stamp.params, _input_bundle.params)
         return resp
 
@@ -41,10 +43,11 @@ class BaseController(IController):
             self.listener.onFailed(self, resp)
             return
 
-        _result = self.action.on_action(_request_code, _input_bundle, self.stamp)
+        if Setting.DEBUG: _result = Setting.RESULT_OK
+        else: _result = self.action.on_action(_request_code, _input_bundle, self.stamp)
         resp = self.web_commit(_input_bundle, _result)
-        _input_bundle.params['sn'] = resp[u'sn']
-        _input_bundle.params['step'] = resp[u'step']
+        _input_bundle.params[Setting.ID] = resp[Setting.ID]
+        _input_bundle.params[Setting.STEP] = resp[Setting.STEP]
         if self.listener is not None:
             self.listener.onResponse(self, resp)
         return _result
