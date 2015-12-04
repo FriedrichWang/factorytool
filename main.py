@@ -56,8 +56,9 @@ class MainListener(Listener):
         self.win.status_text(u'成功 Pass')
 
     def onContinue(self, controller):
-        self.win.success_button['state'] = NORMAL
-        self.win.failed_button['state'] = NORMAL
+        self.win.status_text(u'请选择')
+        self.win.enable_buttons()
+        self.win.label_normal()
 
     def onFinish(self, controller):
         # NOTICE: controller is None
@@ -172,13 +173,13 @@ class MainWindow():
         if text is not None: self.label_failed(str(text))
 
     def label_success(self, text=None):
-        self.state_label['background'] = '#00BFFF'
-        self.state_indicator['background'] = '#00BFFF'
+        self.state_label['background'] = '#2E8B57'
+        self.state_indicator['background'] = '#2E8B57'
         if text is not None: self.label_failed(str(text))
 
     def label_failed(self, text=None):
-        self.state_label['background'] = '#00BFFF'
-        self.state_indicator['background'] = '#00BFFF'
+        self.state_label['background'] = '#DC143C'
+        self.state_indicator['background'] = '#DC143C'
         if text is not None: self.label_failed(str(text))
 
     def label_text(self, text):
@@ -188,11 +189,11 @@ class MainWindow():
     def status_text(self, text):
         self.state_indicator_var.set(text)
         if text.endswith('Pass'):
-            self.state_label['background'] = '#2E8B57'
-            self.state_indicator['background'] = '#2E8B57'
+            self.label_success()
+        elif text.endswith('Failed'):
+            self.label_failed()
         else:
-            self.state_label['background'] = '#DC143C'
-            self.state_indicator['background'] = '#DC143C'
+            self.label_normal()
 
     def _start_run(self):
         print('Running')
@@ -202,6 +203,10 @@ class MainWindow():
     def disable_buttons(self):
         self.success_button['state'] = DISABLED
         self.failed_button['state'] = DISABLED
+        
+    def enable_buttons(self):
+        self.success_button['state'] = NORMAL
+        self.failed_button['state'] = NORMAL
 
     def start_run(self):
         print('wait running')
