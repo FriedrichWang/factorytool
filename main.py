@@ -131,6 +131,7 @@ class MainWindow():
         
     def loop(self):
         print('mainloop')
+        self.sn_input.focus()
         self.root.mainloop()
 
     def initialize(self):
