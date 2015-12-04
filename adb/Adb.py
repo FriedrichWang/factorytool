@@ -191,15 +191,10 @@ class ADB(object):
         Test Wifi State
         """
         self.__clean()
-        self.run_cmd('remount')
-        self.push_local_file('wl.dat', '/system/bin')
-        self.push_local_file('cfg80211.ko', '/system/lib/modules/')
-        self.push_local_file('bcmdhd.ko', '/system/lib/modules/')
-        self.shell_command('insmod /system/lib/modules/cfg80211.ko')
-        self.shell_command('insmod /system/lib/modules/bcmdhd.ko ')
-        self.shell_command('wl.dat scan')
-        self.shell_command('wk.dat scan results')
-        return 1
+        self.shell_command('cat sys/class/net/wlan0/address')
+        if self.__output is not None and len(self.__output) > 0:
+            return self.__output
+        return 2
 
     def test_power(self):
         """

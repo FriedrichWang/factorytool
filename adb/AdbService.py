@@ -90,4 +90,3 @@ class AdbService(Service):
 
     def is_passed(self):
         return self.__result
-

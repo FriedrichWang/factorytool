@@ -65,6 +65,7 @@ class MainListener(Listener):
         print('finish')
         self.win.status_text(u'完成 Pass')
 
+
 class MainWindow():
     def __init__(self):
         self.root = Tk()
