@@ -5,6 +5,7 @@ from factcore.works.packageworks import CheckSNWork, BurnVCOMWork, \
     UpdateCITWork, CITCheckWork, UpdateApkWork, ResetWork
 
 class Setting(object):
+    DEBUG = True
     AUTO_START = False
     CURRENT_STEP = 'PackBurn'
     STEPS = {

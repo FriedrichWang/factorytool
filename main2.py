@@ -3,30 +3,13 @@ from Tkinter import *
 from tkFont import *
 from factcore.setting import Setting
 from factcore.ui import ButtonEx
-
-class Context(object):
-    def __init__(self):
-        self.works = []
-
-    def appendWork(self, work):
-        self.works.append(work)
-        
-    def OnSuccess(self):
-        pass
-    def OnFailed(self):
-        pass
-    def OnContinue(self):
-        pass
-    def OnFinished(self):
-        pass
-        # TODO: reset
-        
-    def getListener(self): return self
+from factcore.works.workflow import BaseWork, Context
+from factcore.logger import Log
 
 class MainWindow():
     def __init__(self):
         self.workflows = []
-        self.ctx = Context()
+        self.ctx = Context(self)
         self.title = u'产线工具'
         self.label_frame_title = u'产线测试工具客户端'
     
@@ -51,7 +34,8 @@ class MainWindow():
         for workcls in self.workflows:
             work = workcls(self.ctx)
             self.ctx.appendWork(work)
-            work.onInitUI(self.main_frame)
+            work.onInit()
+            work.ui.onInitUI(self.main_frame)
             
         buttons_frame = LabelFrame(self.root)
         buttons_frame.pack(fill="both", expand="yes")
@@ -69,10 +53,11 @@ class MainWindow():
         
     def _start(self):
         self.start_button.disable()
+        self.ctx.start()
         
     def loop(self):
         if Setting.AUTO_START:
-            self.root.after(300, self._start)
+            self._start()
         self.root.mainloop()
         
 if __name__ == '__main__':

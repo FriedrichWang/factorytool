@@ -14,6 +14,9 @@ class BurnVCOMWork(BaseWork):
         self.cmd = u'echo "success"'
         self.expect = r'success'
 
+    def getDebugRet(self):
+        return BaseWork.PAUSE
+
 class UpdateCITWork(BaseWork):
     def __init__(self, ctx):
         super(UpdateCITWork, self).__init__(u'更新CIT', ctx)
@@ -36,4 +39,6 @@ class ResetWork(BaseWork):
         super(ResetWork, self).__init__(u'重置', ctx)
         self.cmd = u'echo "success"'
         self.expect = r'success'
-
+        
+    def getDebugRet(self):
+        return BaseWork.PAUSE
