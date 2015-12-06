@@ -20,6 +20,7 @@ class MainWindow():
 
     def initWorkFlow(self):
         self.ctx.initWorkClss(Setting.getStepWorks())
+        self.ctx.reset(force=True)
 
     def cleanMainFrame(self):
         if hasattr(self, 'main_frame'):
@@ -52,16 +53,23 @@ class MainWindow():
     def getMainFrame(self): return self.main_frame
         
     def _start(self):
+        if self.start_button['text'] == u'重新开始':
+            self.ctx.reset(force=True)
+            self.start_button['text'] = u'开始'
         self.start_button.disable()
         self.ctx.start()
-        
+
     def loop(self):
         if Setting.AUTO_START:
             self._start()
         self.root.mainloop()
 
-    def resetStartButton(self):
+    def showStartButton(self):
         self.start_button['text'] = u'开始'
+        self.start_button.enable()
+        
+    def showRestartButton(self):
+        self.start_button['text'] = u'重新开始'
         self.start_button.enable()
         
 if __name__ == '__main__':

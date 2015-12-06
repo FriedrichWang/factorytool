@@ -82,10 +82,10 @@ class Context(object):
 
     def initWorkClss(self, clss):
         self.workclss = clss
-        self.reInitWorks()
 
     def reInitWorks(self):
         # debug check flags
+        Log.d('reInitWorks')
         for work in self.works:
             work.debugCheckFinishedFlags()
 
@@ -97,7 +97,7 @@ class Context(object):
             work.onInit()
             work.ui.onInitUI(self.win.getMainFrame())
         self.workiter = self.iterWork()
-        self.win.resetStartButton()
+        self.win.showStartButton()
     
     def start(self):
         self.win.root.after(0, self._start)
@@ -155,9 +155,16 @@ class Context(object):
                                (work, work.result))
         return work
 
-    def reset(self):
-        self.reInitWorks()
-
-    def showRestart(self):
-        # TODO
-        print('showRestart')
+    def reset(self, force=False):
+        if force:
+            self.reInitWorks()
+        else:
+            allsuccess = True
+            for work in self.works:
+                if work.result != BaseWork.SUCCESS:
+                    allsuccess = False
+                    break
+            if not allsuccess:
+                self.win.showRestartButton()
+            else:
+                self.reInitWorks()

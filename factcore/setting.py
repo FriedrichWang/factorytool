@@ -1,6 +1,6 @@
 
 class Setting(object):
-    DEBUG_UI = True
+    DEBUG_UI = False
     AUTO_START = False
     CURRENT_STEP = 'PackBurn'
     @classmethod
