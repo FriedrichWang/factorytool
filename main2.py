@@ -8,35 +8,35 @@ from factcore.logger import Log
 
 class MainWindow():
     def __init__(self):
-        self.workflows = []
         self.ctx = Context(self)
         self.title = u'产线工具'
         self.label_frame_title = u'产线测试工具客户端'
     
     def main(self):
         self.root = Tk()
-        self.initWorkFlow()
         self.initUI()
+        self.initWorkFlow()
         self.loop()
 
     def initWorkFlow(self):
-        self.workflows.extend(Setting.getStepWorks())
-        
+        self.ctx.initWorkClss(Setting.getStepWorks())
+
+    def cleanMainFrame(self):
+        if hasattr(self, 'main_frame'):
+            self.main_frame.destroy()
+            self.main_frame = None
+        self.main_frame = Frame(self.main_frame_wrapper)
+        self.main_frame.pack()
+
     def initUI(self):
         self.root.title(self.title)
 
         labelframe = LabelFrame(self.root, text=self.label_frame_title)
         labelframe.pack(fill="both", expand="yes")
 
-        self.main_frame = Frame(labelframe)
-        self.main_frame.pack()
-        
-        for workcls in self.workflows:
-            work = workcls(self.ctx)
-            self.ctx.appendWork(work)
-            work.onInit()
-            work.ui.onInitUI(self.main_frame)
-            
+        self.main_frame_wrapper = Frame(labelframe)
+        self.main_frame_wrapper.pack()
+
         buttons_frame = LabelFrame(self.root)
         buttons_frame.pack(fill="both", expand="yes")
         self.start_button = ButtonEx(buttons_frame, text=u'开始',
@@ -59,6 +59,10 @@ class MainWindow():
         if Setting.AUTO_START:
             self._start()
         self.root.mainloop()
+
+    def resetStartButton(self):
+        self.start_button['text'] = u'开始'
+        self.start_button.enable()
         
 if __name__ == '__main__':
     win = MainWindow()

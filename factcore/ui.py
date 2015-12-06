@@ -1,6 +1,7 @@
 #encoding=utf8
 from Tkinter import *
 from tkFont import *
+from sys import platform
 
 class ButtonEx(Button):
     def enable(self):
@@ -22,18 +23,18 @@ class BaseWorkUI(object):
 
         self._initStatus(self.status_frame)
         self._initControl(self.control_frame)
-        self.pass_btn.disable()
-        self.fail_btn.disable()
         def _success(event):
             self.work.result = self.work.SUCCESS
-            self.ctx.incStep(self.work.result, True)
+            self.ctx.incStep(self.work, True)
             self.ctx.start()
         def _failed(event):
             self.work.result = self.work.FAILED
-            self.ctx.incStep(self.work.result, True)
+            self.ctx.incStep(self.work, True)
             self.ctx.start()
-        self.pass_btn.bind("<Button-1>", _success)
-        self.fail_btn.bind("<Button-1>", _failed)
+        self.connectButton(self.pass_btn, _success)
+        self.connectButton(self.fail_btn, _failed)
+        self.pass_btn.disable()
+        self.fail_btn.disable()
         
     def onBeginUI(self):
         self.status_text(u'正在测试...')
@@ -56,7 +57,10 @@ class BaseWorkUI(object):
         self.fail_btn.disable()
 
     def _initStatus(self, frame):
-        self.status_label = self.createLabel(frame, side=LEFT)
+        frame0 = self.createFrame(frame, side=LEFT)
+        name_label = self.createLabel(frame0, side=LEFT)
+        name_label.var.set(u'%s:' % self.work.getName())
+        self.status_label = self.createLabel(frame0, side=LEFT)
         self.status_label.var.set(u'准备测试')
 
     def _initControl(self, frame):
@@ -112,3 +116,11 @@ class BaseWorkUI(object):
         else:
             self.status_normal()
         self.ctx.getRoot().update()
+
+    def connectButton(self, btn, func, data=None):
+        if platform == 'win32':
+            # on windows platform have bugs on bind method 
+            # (variable do not change before event, so get variable value is incorrect)
+            btn.config(command=lambda : func(data))
+        else:
+            btn.bind("<ButtonRelease-1>", lambda event: func(data))
