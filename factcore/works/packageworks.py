@@ -1,5 +1,28 @@
 #encoding=utf8
 from factcore.works.workflow import BaseWork
+from factcore.ui import BaseWorkUI
+from factcore.cmdwrapper import runcmd
+
+## common step
+class WaitAdbWork(BaseWork):
+    def __init__(self, ctx):
+        super(WaitAdbWork, self).__init__(u'等待Adb', ctx)
+        self.cmd = u'adb devices'
+        self.expect = ''
+
+    def debugSuccessOutput(self):
+        return '''
+adb server is out of date.  killing...
+* daemon started successfully *
+List of devices attached 
+e70a976b    device
+'''
+
+    def debugFailedOutput(self):
+        return '''
+error:
+
+'''
 
 ## Step1
 class CheckSNWork(BaseWork):
@@ -7,6 +30,25 @@ class CheckSNWork(BaseWork):
         super(CheckSNWork, self).__init__(u'检查SN', ctx)
         self.cmd = u'echo "success"'
         self.expect = r'success'
+        self.ui_hasentry = True
+        self.ui.setPauseText(u'请输入SN:')
+
+    def onWork(self):
+        return BaseWork.PAUSE
+        
+    def onContinue(self, pass_or_failed):
+        param = self.ui.entry.get()
+        sn = self.getSn()
+        if sn != param:
+            self.result = BaseWork.FAILED
+        else:
+            self.result = BaseWork.SUCCESS
+        BaseWork.onContinue(self, self.result)
+
+    def getSn(self):
+        ret, output = runcmd('adb shell cat /etc/sn_number')
+        if not ret: return None
+        else: return output
 
 class BurnVCOMWork(BaseWork):
     def __init__(self, ctx):

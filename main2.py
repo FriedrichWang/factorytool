@@ -41,9 +41,9 @@ class MainWindow():
         buttons_frame = LabelFrame(self.root)
         buttons_frame.pack(fill="both", expand="yes")
         self.start_button = ButtonEx(buttons_frame, text=u'开始',
-                                     font=Font(size=12), width=30, height=3,
+                                     font=Font(size=Setting.DEFAULT_FONT_SIZE), width=30, height=3,
                                      command=lambda: self.root.after(0, self._start))
-        self.start_button.pack()
+        self.start_button.pack(fill="both", expand="yes")
 
         self.root.update()
         self.root.minsize(self.root.winfo_width()+100, self.root.winfo_height()+40)

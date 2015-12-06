@@ -3,6 +3,7 @@ class Setting(object):
     DEBUG_UI = False
     AUTO_START = False
     CURRENT_STEP = 'PackBurn'
+    DEFAULT_FONT_SIZE = 24
     @classmethod
     def getStepWorks(cls):
         from factcore.works.smtworks import SnWriteWork, ScreenWork, \

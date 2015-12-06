@@ -2,6 +2,7 @@
 from Tkinter import *
 from tkFont import *
 from sys import platform
+from factcore.setting import Setting
 
 class ButtonEx(Button):
     def enable(self):
@@ -11,33 +12,47 @@ class ButtonEx(Button):
 
 class BaseWorkUI(object):
     def __init__(self, work, ctx):
-        self.font = Font(size=12)
+        self.font = Font(size=Setting.DEFAULT_FONT_SIZE)
         self.work = work
         self.ctx = ctx
+        self._pause_text = u'正在测试...'
+        
+    def setPauseText(self, text):
+        self._pause_text = text
 
     def onInitUI(self, frame):
         workframe = self.createFrame(frame, side=TOP)
 
         self.status_frame = self.createFrame(workframe)
-        self.control_frame = self.createFrame(workframe)
+        self.control_frame = self.createFrame(workframe, expand=None)
 
         self._initStatus(self.status_frame)
+
+        def _onentry(event):
+            self.ctx.incStep(self.work, True)
+            self.ctx.start()
+        if self.work.ui_hasentry:
+            self.entry = self.createEntry(self.control_frame, side=LEFT)
+            self.entry.bind('<KeyRelease-Return>', _onentry)
+
         self._initControl(self.control_frame)
-        def _success(event):
+        def _onsuccess(event):
             self.work.result = self.work.SUCCESS
             self.ctx.incStep(self.work, True)
             self.ctx.start()
-        def _failed(event):
+        def _onfailed(event):
             self.work.result = self.work.FAILED
             self.ctx.incStep(self.work, True)
             self.ctx.start()
-        self.connectButton(self.pass_btn, _success)
-        self.connectButton(self.fail_btn, _failed)
+        self.connectButton(self.pass_btn, _onsuccess)
+        self.connectButton(self.fail_btn, _onfailed)
         self.pass_btn.disable()
         self.fail_btn.disable()
-        
+ 
     def onBeginUI(self):
-        self.status_text(u'正在测试...')
+        if self.work.ui_hasentry:
+            self.entry.focus()
+        self.status_text(self._pause_text)
     
     def onEndUI(self):
         pass
@@ -49,50 +64,53 @@ class BaseWorkUI(object):
         self.status_text(u'失败Failed')
     
     def onPauseUI(self):
-        self.pass_btn.enable()
-        self.fail_btn.enable()
+        if not self.work.ui_hasentry:
+            self.pass_btn.enable()
+            self.fail_btn.enable()
     
-    def onContinueUI(self):
+    def onContinueUI(self, pass_or_failed=None):
         self.pass_btn.disable()
         self.fail_btn.disable()
 
     def _initStatus(self, frame):
-        frame0 = self.createFrame(frame, side=LEFT)
-        name_label = self.createLabel(frame0, side=LEFT)
+        frame0 = self.createFrame(frame)
+        name_label = self.createLabel(frame0)
         name_label.var.set(u'%s:' % self.work.getName())
-        self.status_label = self.createLabel(frame0, side=LEFT)
+         
+        self.status_label = self.createLabel(frame0)
         self.status_label.var.set(u'准备测试')
 
     def _initControl(self, frame):
-        self.pass_btn = self.createButton(frame, u'成功 ')
-        self.fail_btn = self.createButton(frame, u'失败')
+        self.pass_btn = self.createButton(frame, u'成功 ', side=LEFT)
+        self.fail_btn = self.createButton(frame, u'失败', side=LEFT)
         
-    def createLabelFrame(self, parent, text, side=LEFT):
+    def createLabelFrame(self, parent, text, fill="both", expand="yes", side=LEFT):
         frame = LabelFrame(parent, text=text)
-        frame.pack(side=side, fill="both", expand="yes")
+        frame.pack(side=side, fill=fill, expand=expand)
         return frame
 
-    def createFrame(self, parent, side=LEFT):
-        frame = Frame(parent)
-        frame.pack(side=side, fill="both", expand="yes")
+    def createFrame(self, parent, bg=None, fill="both", expand="yes", side=LEFT):
+        frame = Frame(parent, bg=bg)
+        frame.pack(side=side, fill=fill, expand=expand)
         return frame
 
     def createLabel(self, parent, width=15, height=3, bg="#00BFFF", side=LEFT):
         txtvar = StringVar()
-        label = Label(parent, textvariable=txtvar, #font=self.font,
+        label = Label(parent, textvariable=txtvar, font=self.font,
                       width=width, height=height, bg=bg)
         label.var = txtvar
         label.pack(side=side)
         return label
     
     def createButton(self, parent, label='', side=LEFT):
-        btn = ButtonEx(parent, text=label)
+        btn = ButtonEx(parent, text=label, font=self.font)
         btn.pack(side=side)
         return btn
     
-    def createEntry(self, parent, label='', side=LEFT):
-        entry = Entry(parent)
+    def createEntry(self, parent, side=LEFT):
+        entry = Entry(parent, font=self.font)
         entry.pack(side=side)
+        return entry
 
     def status_normal(self, text=None):
         self.status_text(text)

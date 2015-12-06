@@ -15,14 +15,16 @@ class BaseWork(object):
         self.result = BaseWork.UNKNOWN
         self._name = name
         self.ctx = ctx
-        self.ui = uicls(self, ctx)
+        self.ui_hasentry = False
         self._flag_onBegin = False
         self._flag_onEnd = False
+        self.ui = uicls(self, ctx)
 
     def onInit(self):
-        pass
+        ''' Invoke: 在 workflow 流程初始化时调用'''
 
     def onBegin(self):
+        ''' Invoke: 在 onWork 执行前执行 '''
         self._flag_onBegin = True
         self.ui.onBeginUI()
         
@@ -30,6 +32,7 @@ class BaseWork(object):
         return self._name
     
     def onWork(self):
+        ''' Invoke: 工作函数主体, 返回 PAUSE 时等待用户输入entry或者等待点击按钮'''
         ret, output = runcmd(self.cmd)
         if ret != 0:
             Log.e('[%s]runcmd faield -> %s' % (self.getName(), self.cmd))
@@ -43,20 +46,22 @@ class BaseWork(object):
             return BaseWork.FAILED
         
     def onEnd(self):
+        ''' Invoke: 在 onWork 执行 后调用, 可以查看 self.result 结果'''
         self._flag_onEnd = True
-        self.ui.onEndUI()
 
     def onPause(self):
-        self.ui.onPauseUI()
+        ''' Invoke: 在 onWork 返回 PAUSE 时被调用 '''
         
-    def onContinue(self, pass_or_failed):
-        self.ui.onContinueUI(pass_or_failed)
+    def onContinue(self, pass_or_failed=None):
+        ''' Invoke: 接受一个参数 , 是操作者点击了 成功(BaseResult.SUCCESS) 或者 失败(BaseResult.FAILED)
+            Output: 需要设置 self.result 为  SUCCESS 或者 FAILED, OnEnd 会使用该结果, 无返回
+        '''
 
     def __unicode__(self):
-        return self.getName()
+        return u'%s -- %s' % (self.__class__, self.getName())
     
     def __str__(self):
-        return self.getName()
+        return '%s -- %s' % (self.__class__, self.getName())
     
     def getDebugRet(self):
         return BaseWork.SUCCESS
@@ -66,6 +71,19 @@ class BaseWork(object):
             raise FactRuntimeError(u'%s onBegin not be called' % self.getName())
         if self._flag_onEnd is not True:
             raise FactRuntimeError(u'%s onEnd not be called' % self.getName())
+
+    @classmethod
+    def ResultToName(cls, res):
+        if res == BaseWork.SUCCESS:
+            return 'SUCCESS'
+        elif res == BaseWork.FAILED:
+            return 'FAILED'
+        elif res == BaseWork.PAUSE:
+            return 'PAUSE'
+        elif res == BaseWork.UNKNOWN:
+            return 'UNKOWN'
+        else:
+            return 'UNEXPECTED %s' % res
 
 
 class Context(object):
@@ -119,6 +137,7 @@ class Context(object):
         for work in self.works:
             if self.curwork:
                 self.curwork.onEnd()
+                self.curwork.ui.onEndUI()
             work.onBegin()
             if Setting.DEBUG_UI:
                 ret = work.getDebugRet()
@@ -129,19 +148,21 @@ class Context(object):
             yield self.incStep(work)
         if self.curwork:
             self.curwork.onEnd()
+            self.curwork.ui.onEndUI()
         self.curwork = None
         yield None
-
-    def getCurWork(self):
-        if self.curworkidx < len(self.works):
-            return self.works[self.curworkidx]
 
     def incStep(self, work, iscontinue=False):
         if not work:
             raise RuntimeError('Can not get work with work(%s)\nworks(%s)' % \
                                (work, self.works))
         if iscontinue:
-            work.ui.onContinueUI()
+            work.onContinue(work.result)
+            work.ui.onContinueUI(work.result)
+            if work.result not in (BaseWork.SUCCESS, BaseWork.FAILED):
+                raise FactRuntimeError('(%s) onContinue should set works\'s ' % work \
+                                        +'result(%s) to SUCCESS or FAILED' % \
+                                         BaseWork.ResultToName(work.result))
         if work.result == BaseWork.SUCCESS:
             work.ui.onSuccessUI()
         elif work.result == BaseWork.FAILED:
@@ -150,8 +171,10 @@ class Context(object):
             work.onPause()
             work.ui.onPauseUI()
             return work
+        elif work.result == BaseWork.UNKNOWN:
+            work.result = work.onWork()
         else:
-            raise RuntimeError('Unknown work(%s) return code %s' % \
+            raise FactRuntimeError('Unknown work(%s) return code "%s"' % \
                                (work, work.result))
         return work
 
