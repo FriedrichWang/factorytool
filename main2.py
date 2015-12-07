@@ -77,6 +77,8 @@ class MainWindow():
         self.start_button.focus()
         
     def showInfo(self, msg):
+        if not msg: return
+        msg = str(msg)
         self.infoarea.insert(END, msg)
         self.infoarea.insert(END, '\n')
         

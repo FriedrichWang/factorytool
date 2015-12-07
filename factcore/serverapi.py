@@ -10,7 +10,7 @@ class ServerApi(object):
         url = Setting.BASE_CHECKSTEP_URL % {'sn': sn, 'step': Setting.getStepInt(step)}
         Log.d(url)
         try:
-            resp = requests.post(url)
+            resp = requests.get(url)
         except:
             from factcore.works.workflow import BaseWork
             return {'ret': BaseWork.FAILED, 'desc': u'不能连接服务器'}
@@ -19,8 +19,10 @@ class ServerApi(object):
     def uploadResult(self, sn, step, result, descobj={}):
         url = Setting.BASE_STEP_URL % {'sn': sn, 'step': Setting.getStepInt(step),
                                        'result': result}
+        Log.d(url)
+        data = jdumps(descobj, ensure_ascii=False).encode('utf8')
         try:
-            resp = requests.post(url, params={}, data=jdumps(descobj))
+            resp = requests.post(url, params={}, data=data)
         except:
             from factcore.works.workflow import BaseWork
             return {'ret': BaseWork.FAILED, 'desc': u'不能连接服务器'}
@@ -32,6 +34,7 @@ class ServerApi(object):
         return self.jsonloads(resp.text)
 
     def jsonloads(self, content):
+        Log.d('response --> %s' % content)
         try: return jloads(content)
         except:
             from factcore.works.workflow import BaseWork

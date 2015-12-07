@@ -22,6 +22,7 @@ class UploadResult(BaseWork):
         super(UploadResult, self).__init__(u'上传日志', ctx)
         
     def onWork(self):
+        self.result = self.SUCCESS
         resp = self.ctx.uploadResult()
         self.err = resp.get('desc', '')
         return resp['ret']

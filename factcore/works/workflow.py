@@ -281,7 +281,7 @@ class Context(object):
     def getWorksDesc(self):
         worksdesc = []
         for work in self.works:
-            worksdesc.append({'name': work.getName(),
+            worksdesc.append({'name': work.__class__.__name__,
                               'result': work.result})
         return worksdesc
     
