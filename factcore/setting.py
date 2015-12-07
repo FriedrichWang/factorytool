@@ -1,8 +1,11 @@
 class BaseSetting(object):
     DEBUG_UI = False
+    DEBUG_WORK = True
+    DEBUG_SUCCESS = True
+    DEBUG_WORK_INTERVAL = 0.3
     AUTO_START = True
     CURRENT_STEP = 'PackBurn'
-    DEFAULT_FONT_SIZE = 24
+    DEFAULT_FONT_SIZE = 20
     CLASS_MAP = {}
     def __init__(self):
         self.init()
@@ -27,12 +30,12 @@ BaseSetting.CLASS_MAP['SMTCheckSetting'] = SMTCheckSetting
 
 class PackBurn(BaseSetting):
     def init(self):
-        self.AUTO_START = True
+        self.AUTO_START = False
 
     def getStepWorks(self):
         from factcore.works.packageworks import CheckSNWork, BurnVCOMWork, \
-            UpdateCITWork
-        return [CheckSNWork, BurnVCOMWork, UpdateCITWork]
+            UpdateCITWork, WaitAdbWork
+        return [WaitAdbWork, CheckSNWork, BurnVCOMWork, UpdateCITWork]
 
 BaseSetting.CLASS_MAP['PackBurn'] = PackBurn
 
@@ -41,8 +44,9 @@ class PackCIT(BaseSetting):
         self.AUTO_START = True
 
     def getStepWorks(self):
-        from factcore.works.packageworks import CITCheckWork, UpdateApkWork, ResetWork
-        return [CITCheckWork, UpdateApkWork, ResetWork]
+        from factcore.works.packageworks import CITCheckWork, UpdateApkWork, \
+            ResetWork, WaitAdbWork
+        return [WaitAdbWork, CITCheckWork, UpdateApkWork, ResetWork]
 
 BaseSetting.CLASS_MAP['PackCIT'] = PackCIT
 

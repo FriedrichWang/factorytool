@@ -4,11 +4,14 @@ from tkFont import *
 from sys import platform
 from factcore.setting import Setting
 
-class ButtonEx(Button):
+class StateMixin(object):
     def enable(self):
         self['state'] = NORMAL
     def disable(self):
         self['state'] = DISABLED
+
+class ButtonEx(Button, StateMixin): pass
+class EntryEx(Entry, StateMixin): pass
 
 class BaseWorkUI(object):
     def __init__(self, work, ctx):
@@ -33,6 +36,7 @@ class BaseWorkUI(object):
             self.ctx.start()
         if self.work.ui_hasentry:
             self.entry = self.createEntry(self.control_frame, side=LEFT)
+            self.entry.disable()
             self.entry.bind('<KeyRelease-Return>', _onentry)
 
         self._initControl(self.control_frame)
@@ -51,6 +55,7 @@ class BaseWorkUI(object):
  
     def onBeginUI(self):
         if self.work.ui_hasentry:
+            self.entry.enable()
             self.entry.focus()
         self.status_text(self._pause_text)
     
@@ -108,7 +113,7 @@ class BaseWorkUI(object):
         return btn
     
     def createEntry(self, parent, side=LEFT):
-        entry = Entry(parent, font=self.font)
+        entry = EntryEx(parent, font=self.font)
         entry.pack(side=side)
         return entry
 

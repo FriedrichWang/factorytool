@@ -1,4 +1,5 @@
 #encoding=utf8
+from re import compile
 from factcore.works.workflow import BaseWork
 from factcore.ui import BaseWorkUI
 from factcore.cmdwrapper import runcmd
@@ -8,8 +9,8 @@ class WaitAdbWork(BaseWork):
     def __init__(self, ctx):
         super(WaitAdbWork, self).__init__(u'等待Adb', ctx)
         self.cmd = u'adb devices'
-        self.expect = ''
-
+        self.expect = r'\bdevice\b'
+        
     def debugSuccessOutput(self):
         return '''
 adb server is out of date.  killing...

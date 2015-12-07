@@ -5,6 +5,7 @@ from factcore.cmdwrapper import runcmd
 from factcore.logger import Log
 from factcore.setting import Setting
 from factcore.exceptions import FactRuntimeError
+from time import sleep
 
 class BaseWork(object):
     UNKNOWN = -1
@@ -18,6 +19,7 @@ class BaseWork(object):
         self.ui_hasentry = False
         self._flag_onBegin = False
         self._flag_onEnd = False
+        self._flag_doWork = False
         self.ui = uicls(self, ctx)
 
     def onInit(self):
@@ -35,14 +37,15 @@ class BaseWork(object):
         ''' Invoke: 工作函数主体, 返回 PAUSE 时等待用户输入entry或者等待点击按钮'''
         ret, output = runcmd(self.cmd)
         if ret != 0:
-            Log.e('[%s]runcmd faield -> %s' % (self.getName(), self.cmd))
+            Log.e('[%s]runcmd failed -> %s' % (self.getName(), self.cmd))
             return BaseWork.FAILED
         m = compile(self.expect).search(output)
         if m:
-            Log.i('[%s]%s -> match %s' % (self.getName(), self.expect, m.groups()))
+            Log.d('[%s](SUCCESS) %s -> match %s' % (self.getName(), self.expect, m.groups()))
             return BaseWork.SUCCESS
         else:
-            Log.e('[%s]%s -> notmatch' % (self.getName(), self.expect))
+            Log.raw('Output:\n%s' % output)
+            Log.e('[%s](FAILED) %s -> not match' % (self.getName(), self.expect))
             return BaseWork.FAILED
         
     def onEnd(self):
@@ -63,10 +66,32 @@ class BaseWork(object):
     def __str__(self):
         return '%s -- %s' % (self.__class__, self.getName())
     
+    def debugSuccessOutput(self):
+        return u'success'
+    
+    def debugFailedOutput(self):
+        return u'failed'
+    
     def getDebugRet(self):
         return BaseWork.SUCCESS
     
+    def onDebugWork(self):
+        if Setting.DEBUG_SUCCESS:
+            output = self.debugSuccessOutput()
+        else:
+            output = self.debugFailedOutput()
+        m = compile(self.expect).search(output)
+        if m:
+            Log.i('DebugWork!!![%s](SUCCESS) "%s" -> match %s' % (self.getName(), self.expect, m.groups()))
+            return BaseWork.SUCCESS
+        else:
+            Log.raw('Output:\n%s' % output)
+            Log.e('DebugWork!!![%s](SUCCESS) "%s" -> not match' % (self.getName(), self.expect))
+            return BaseWork.FAILED
+    
     def debugCheckFinishedFlags(self):
+        if self._flag_doWork is not True:
+            return # not invoke doWork, every thing be OK.
         if self._flag_onBegin is not True:
             raise FactRuntimeError(u'%s onBegin not be called' % self.getName())
         if self._flag_onEnd is not True:
@@ -121,7 +146,7 @@ class Context(object):
         self.win.root.after(0, self._start)
 
     def _start(self):
-        print('start do...')
+        Log.i('start do...')
         if self.workiter is None:
             self.workiter = self.iterWork()
         while True:
@@ -129,26 +154,33 @@ class Context(object):
             if work == None:
                 self.reset()
                 break
-            print(repr(work))
+            Log.d(repr(work))
             if work.result == BaseWork.PAUSE:
+                break
+            elif work.result == BaseWork.FAILED:
+                self._endCurrentWork()
+                self.win.showRestartButton()
                 break
 
     def iterWork(self):
         for work in self.works:
             if self.curwork:
-                self.curwork.onEnd()
-                self.curwork.ui.onEndUI()
+                self._endCurrentWork()
             work.onBegin()
             if Setting.DEBUG_UI:
                 ret = work.getDebugRet()
+                sleep(Setting.DEBUG_WORK_INTERVAL)
+            if Setting.DEBUG_WORK:
+                ret =  work.onDebugWork()
+                sleep(Setting.DEBUG_WORK_INTERVAL)
             else:
                 ret = work.onWork()
+                work._flag_doWork = True
             work.result = ret
             self.curwork = work
             yield self.incStep(work)
         if self.curwork:
-            self.curwork.onEnd()
-            self.curwork.ui.onEndUI()
+            self._endCurrentWork()
         self.curwork = None
         yield None
 
@@ -173,6 +205,7 @@ class Context(object):
             return work
         elif work.result == BaseWork.UNKNOWN:
             work.result = work.onWork()
+            work._flag_doWork = True
         else:
             raise FactRuntimeError('Unknown work(%s) return code "%s"' % \
                                (work, work.result))
@@ -191,3 +224,9 @@ class Context(object):
                 self.win.showRestartButton()
             else:
                 self.reInitWorks()
+
+    def _endCurrentWork(self):
+        if self.curwork:
+            self.curwork.onEnd()
+            self.curwork.ui.onEndUI()
+            self.curwork = None

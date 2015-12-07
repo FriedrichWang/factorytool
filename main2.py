@@ -67,10 +67,12 @@ class MainWindow():
     def showStartButton(self):
         self.start_button['text'] = u'开始'
         self.start_button.enable()
+        self.start_button.focus()
         
     def showRestartButton(self):
         self.start_button['text'] = u'重新开始'
         self.start_button.enable()
+        self.start_button.focus()
         
 if __name__ == '__main__':
     win = MainWindow()

@@ -5,6 +5,11 @@ class Logger(object):
         sys.stdout.write('\n')
         sys.stdout.flush()
 
+    def raw(self, msg):
+        sys.stdout.write('%s' % msg)
+        sys.stdout.write('\n')
+        sys.stdout.flush()
+
     def i(self, msg): self.msg('[I]', msg)
     def e(self, msg): self.msg('[E]', msg)
     def work(self, msg): self.msg('[W]', msg)
