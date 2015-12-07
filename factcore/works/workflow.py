@@ -6,6 +6,7 @@ from factcore.logger import Log
 from factcore.setting import Setting
 from factcore.exceptions import FactRuntimeError
 from time import sleep
+from factcore.serverapi import srvapi
 
 class BaseWork(object):
     UNKNOWN = -1
@@ -22,6 +23,7 @@ class BaseWork(object):
         self._flag_doWork = False
         self.cmd = u'echo "success"'
         self.expect = r'success'
+        self.err = ''
         self.ui = uicls(self, ctx)
 
     def onInit(self):
@@ -59,9 +61,15 @@ class BaseWork(object):
         ''' Invoke: 在 onWork 返回 PAUSE 时被调用 '''
         
     def onContinue(self, pass_or_failed=None):
-        ''' Invoke: 接受一个参数 , 是操作者点击了 成功(BaseResult.SUCCESS) 或者 失败(BaseResult.FAILED)
+        ''' Invoke: 接受一个参数 , 是操作者点击了 成功(SUCCESS) 或者 失败(FAILED)
             Output: 需要设置 self.result 为  SUCCESS 或者 FAILED, OnEnd 会使用该结果, 无返回
         '''
+        
+    def onSuccess(self):
+        ''' Invoke: 当 onWork 或者 onContinue 使得 self.result 为 SUCCESS 时调用 '''
+        
+    def onFailed(self):
+        ''' Invoke: 当 onWork 或者 onContinue 使得 self.result 为 FAILED 时调用 '''
 
     def __unicode__(self):
         return u'%s -- %s' % (self.__class__, self.getName())
@@ -124,6 +132,10 @@ class Context(object):
         self.dirty = ''
         self.curwork = None
         self.workiter = None
+        self._sn = ''
+        
+    def getSn(self): return self._sn
+    def setSn(self, sn): self._sn = sn
     
     def getRoot(self):
         return self.win.root
@@ -213,8 +225,10 @@ class Context(object):
                                         +'result(%s) to SUCCESS or FAILED' % \
                                         BaseWork.ResultToName(work.result))
         if work.result == BaseWork.SUCCESS:
+            work.onSuccess()
             work.ui.onSuccessUI()
         elif work.result == BaseWork.FAILED:
+            work.onFailed()
             work.ui.onFailedUI()
         elif work.result == BaseWork.PAUSE:
             work.onPause()
@@ -230,13 +244,10 @@ class Context(object):
 
     def reset(self, force=False):
         if force:
+            self.win.cleanInfo()
             self.reInitWorks()
         else:
-            allsuccess = True
-            for work in self.works:
-                if work.result != BaseWork.SUCCESS:
-                    allsuccess = False
-                    break
+            allsuccess = self.isAllPass()
             if not allsuccess:
                 self.win.showRestartButton()
             else:
@@ -247,3 +258,31 @@ class Context(object):
             self.curwork.onEnd()
             self.curwork.ui.onEndUI()
             self.curwork = None
+            
+    def uploadResult(self):
+        if self.isAllPass(): result = BaseWork.SUCCESS
+        else: result = BaseWork.FAILED
+        descobj = self.getWorksDesc()
+        return srvapi.uploadResult(self.getSn(), Setting.CURRENT_STEP, 
+                            result, descobj)
+        
+    def isAllPass(self):
+        allsuccess = True
+        for work in self.works:
+            if work.result != BaseWork.SUCCESS:
+                allsuccess = False
+                break
+        return allsuccess
+    
+    def getWorksDesc(self):
+        worksdesc = []
+        for work in self.works:
+            worksdesc.append({'name': work.getName(),
+                              'result': work.result})
+        return worksdesc
+    
+    def checkStep(self):
+        return srvapi.checkStep(self.getSn(), Setting.CURRENT_STEP)
+
+    def showInfo(self, msg):
+        self.win.showInfo(msg)

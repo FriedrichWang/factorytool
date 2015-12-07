@@ -1,5 +1,6 @@
 eclipse.preferences.version=1
 encoding//adb/AdbController.py=utf8
+encoding//factcore/serverapi.py=utf8
 encoding//factcore/setting.py=utf8
 encoding//factcore/ui.py=utf8
 encoding//factcore/works/packageworks.py=utf8

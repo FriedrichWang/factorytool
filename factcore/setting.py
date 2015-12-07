@@ -1,14 +1,27 @@
 #encoding=utf8
 class BaseSetting(object):
-    DEBUG_UI = True  # 不执行 onWork 获取 getDebugRet作为结果, 只调试UI用
-    DEBUG_WORK = False # 执行 debugSuccessOutput 作为 output, 以  expect 作为判断依据
-    DEBUG_SUCCESS = True # 是调试 success output 还是 failed output 情况
+    # NOTICE: 正常部署请至 DEBUG_* 为 False
+    DEBUG_UI = False  # 不执行 onWork 获取 getDebugRet作为结果, 只调试UI用
+    DEBUG_WORK = False# 执行 debugSuccessOutput 作为 output, 以  expect 作为判断依据
+    DEBUG_SUCCESS = False# 是调试 success output 还是 failed output 情况
     DEBUG_WORK_INTERVAL = 0.3
     AUTO_START = True
     CURRENT_STEP = 'PackBurn'
-    DEFAULT_FONT_SIZE = 20
+    DEFAULT_FONT_SIZE = 12
+    DEVICE_CIT_RESULT_PATH = '/data/citresult.txt'
+    DEVICE_SN_PATH = '/etc/sn_number'
     CLASS_MAP = {}
+    
+    BASE_HOST = "http://localhost:8080/mephisto/smt/"
+    BASE_STEP_URL = BASE_HOST + "step/%(step)s/%(sn)s/%(result)s"
+    BASE_CHECKSTEP_URL = BASE_HOST + 'checkstep/%(step)s/%(sn)s'
+
     def __init__(self):
+        import sys
+        if sys.platform == 'win32':
+            self.ADB_PATH = 'bin/adb.exe'
+        else:
+            self.ADB_PATH = "adb"
         self.init()
 
     def init(self):
@@ -35,8 +48,9 @@ class PackBurn(BaseSetting):
 
     def getStepWorks(self):
         from factcore.works.packageworks import CheckSNWork, BurnVCOMWork, \
-            UpdateCITWork, WaitAdbWork
-        return [WaitAdbWork, CheckSNWork, BurnVCOMWork, UpdateCITWork]
+            UpdateCITWork, WaitAdbWork, UploadResult, GetSnWork, CheckStep
+        return [CheckStep, WaitAdbWork, GetSnWork, BurnVCOMWork, UpdateCITWork,
+                UploadResult]
 
 BaseSetting.CLASS_MAP['PackBurn'] = PackBurn
 
@@ -46,8 +60,9 @@ class PackCIT(BaseSetting):
 
     def getStepWorks(self):
         from factcore.works.packageworks import CITCheckWork, UpdateApkWork, \
-            ResetWork, WaitAdbWork
-        return [WaitAdbWork, CITCheckWork, UpdateApkWork, ResetWork]
+            ResetWork, WaitAdbWork, UploadResult, GetSnWork, CheckStep
+        return [CheckStep, WaitAdbWork, GetSnWork, CITCheckWork, UpdateApkWork,
+                ResetWork, UploadResult]
 
 BaseSetting.CLASS_MAP['PackCIT'] = PackCIT
 

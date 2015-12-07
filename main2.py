@@ -36,7 +36,9 @@ class MainWindow():
         labelframe.pack(fill="both", expand="yes")
 
         self.main_frame_wrapper = Frame(labelframe)
-        self.main_frame_wrapper.pack()
+        self.main_frame_wrapper.pack(side=LEFT)
+        self.infoarea = Text(labelframe)
+        self.infoarea.pack(side=LEFT)
 
         buttons_frame = LabelFrame(self.root)
         buttons_frame.pack(fill="both", expand="yes")
@@ -74,6 +76,13 @@ class MainWindow():
         self.start_button.enable()
         self.start_button.focus()
         
+    def showInfo(self, msg):
+        self.infoarea.insert(END, msg)
+        self.infoarea.insert(END, '\n')
+        
+    def cleanInfo(self):
+        self.infoarea.delete(1.0, END)
+
 if __name__ == '__main__':
     win = MainWindow()
     win.main()

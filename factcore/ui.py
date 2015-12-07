@@ -67,6 +67,7 @@ class BaseWorkUI(object):
 
     def onFailedUI(self):
         self.status_text(u'失败Failed')
+        self.ctx.showInfo(self.work.err)
     
     def onPauseUI(self):
         if not self.work.ui_hasentry:

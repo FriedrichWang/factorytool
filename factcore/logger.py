@@ -16,7 +16,7 @@ class Logger(object):
 
     def i(self, msg): self.msg('[I]', msg)
     def e(self, msg): self.msg('[E]', msg)
-    def work(self, msg): self.msg('[W]', msg)
+    def w(self, msg): self.msg('[W]', msg)
     def d(self, msg): self.msg('[D]', msg)
 
 Log = Logger()
