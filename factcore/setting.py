@@ -10,9 +10,10 @@ class BaseSetting(object):
     DEFAULT_FONT_SIZE = 12
     DEVICE_CIT_RESULT_PATH = '/data/citresult.txt'
     DEVICE_SN_PATH = '/etc/sn_number'
+    DEVICE_VCOM_PATH = '/etc/epd_vcom'
     CLASS_MAP = {}
     
-    BASE_HOST = "http://localhost:8080/mephisto/smt/"
+    BASE_HOST = "http://:8080/mephisto/smt/"
     BASE_STEP_URL = BASE_HOST + "step/%(step)s/%(sn)s/%(result)s"
     BASE_CHECKSTEP_URL = BASE_HOST + 'checkstep/%(step)s/%(sn)s'
 
@@ -49,7 +50,7 @@ class PackBurn(BaseSetting):
     def getStepWorks(self):
         from factcore.works.packageworks import CheckSNWork, BurnVCOMWork, \
             UpdateCITWork, WaitAdbWork, UploadResult, GetSnWork, CheckStep
-        return [CheckStep, WaitAdbWork, GetSnWork, BurnVCOMWork, UpdateCITWork,
+        return [WaitAdbWork, GetSnWork, BurnVCOMWork, UpdateCITWork,
                 UploadResult]
 
 BaseSetting.CLASS_MAP['PackBurn'] = PackBurn
@@ -60,9 +61,9 @@ class PackCIT(BaseSetting):
 
     def getStepWorks(self):
         from factcore.works.packageworks import CITCheckWork, UpdateApkWork, \
-            ResetWork, WaitAdbWork, UploadResult, GetSnWork, CheckStep
-        return [CheckStep, WaitAdbWork, GetSnWork, CITCheckWork, UpdateApkWork,
-                ResetWork, UploadResult]
+            ResetWork, WaitAdbWork, UploadResult, GetSnWork, CheckStep, WifiCheck
+        return [CheckStep, WaitAdbWork, GetSnWork, CITCheckWork, WifiCheck,
+                UploadResult]
 
 BaseSetting.CLASS_MAP['PackCIT'] = PackCIT
 

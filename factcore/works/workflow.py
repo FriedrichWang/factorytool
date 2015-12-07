@@ -62,14 +62,17 @@ class BaseWork(object):
         
     def onContinue(self, pass_or_failed=None):
         ''' Invoke: 接受一个参数 , 是操作者点击了 成功(SUCCESS) 或者 失败(FAILED)
-            Output: 需要设置 self.result 为  SUCCESS 或者 FAILED, OnEnd 会使用该结果, 无返回
+            Output: 需要返回  SUCCESS 或者 FAILED, OnEnd 会使用该结果
         '''
-        
+        if pass_or_failed: return self.SUCCESS
+        else: return self.FAILED
+
     def onSuccess(self):
         ''' Invoke: 当 onWork 或者 onContinue 使得 self.result 为 SUCCESS 时调用 '''
         
     def onFailed(self):
         ''' Invoke: 当 onWork 或者 onContinue 使得 self.result 为 FAILED 时调用 '''
+        self.ctx.uploadResult()
 
     def __unicode__(self):
         return u'%s -- %s' % (self.__class__, self.getName())
@@ -218,7 +221,8 @@ class Context(object):
                     else: work.result = BaseWork.FAILED
                 sleep(Setting.DEBUG_WORK_INTERVAL)
             else:
-                work.onContinue(work.result)
+                ret = work.onContinue(work.result)
+                if ret is not None: work.result = ret
                 work.ui.onContinueUI(work.result)
             if work.result not in (BaseWork.SUCCESS, BaseWork.FAILED):
                 raise FactRuntimeError('(%s) onContinue should set works\'s ' % work \

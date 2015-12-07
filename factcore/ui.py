@@ -60,7 +60,8 @@ class BaseWorkUI(object):
         self.status_text(self._pause_text)
     
     def onEndUI(self):
-        pass
+        if self.work.ui_hasentry:
+            self.entry.disable()
         
     def onSuccessUI(self):
         self.status_text(u'成功Pass')
