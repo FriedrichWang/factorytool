@@ -31,7 +31,7 @@ class CheckSNWork(BaseWork):
     def __init__(self, ctx):
         super(CheckSNWork, self).__init__(u'检查SN', ctx)
         self.ui_hasentry = True
-        self.ui.setPauseText(u'请输入SN:')
+        self.ui.setPauseText(u'请扫描SN:')
         
     def onContinue(self, pass_or_failed):
         param = self.ui.entry.get()
@@ -51,6 +51,8 @@ class CheckSNWork(BaseWork):
 class BurnVCOMWork(BaseWork):
     def __init__(self, ctx):
         super(BurnVCOMWork, self).__init__(u'烧写VCOM', ctx)
+        self.ui.setPauseText(u'请扫描VCOM值:')
+        self.ui_hasentry = True
 
     def getDebugRet(self):
         return BaseWork.PAUSE
@@ -58,19 +60,27 @@ class BurnVCOMWork(BaseWork):
 class UpdateCITWork(BaseWork):
     def __init__(self, ctx):
         super(UpdateCITWork, self).__init__(u'更新CIT', ctx)
+        self.cmd = 'adb push cit.apk /system/app/cit.apk'
+        self.expect = r'success'
 
 ## Step2
 class CITCheckWork(BaseWork):
     def __init__(self, ctx):
         super(CITCheckWork, self).__init__(u'检查CIT', ctx)
+        self.cmd = 'adb shell cat /data/citresult.txt'
+        self.expect = u'AllPass'
 
 class UpdateApkWork(BaseWork):
     def __init__(self, ctx):
         super(UpdateApkWork, self).__init__(u'更新Apk', ctx)
+        self.cmd = 'adb push data/yuewen.apk /system/app/yuewen.apk'
+        self.expect = u'success'
         
 class ResetWork(BaseWork):
     def __init__(self, ctx):
         super(ResetWork, self).__init__(u'重置', ctx)
+        self.cmd = 'adb shell reboot recovery --reset'
+        self.expect = 'success'
         
     def getDebugRet(self):
         return BaseWork.PAUSE
