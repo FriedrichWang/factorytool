@@ -10,7 +10,7 @@ class MainWindow():
     def __init__(self):
         self.ctx = Context(self)
         self.title = u'产线工具'
-        self.label_frame_title = u'产线测试工具客户端'
+        self.label_frame_title = u'产线测试工具客户端 - %s' % Setting.CURRENT_STEP
     
     def main(self):
         self.root = Tk()

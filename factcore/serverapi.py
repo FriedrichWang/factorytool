@@ -3,10 +3,12 @@ import requests
 import traceback
 from json import dumps as jdumps, loads as jloads
 from factcore.setting import Setting
+from factcore.logger import Log
 
 class ServerApi(object):
     def checkStep(self, sn, step):
-        url = Setting.BASE_CHECKSTEP_URL % {'sn': sn, 'step': step}
+        url = Setting.BASE_CHECKSTEP_URL % {'sn': sn, 'step': Setting.getStepInt(step)}
+        Log.d(url)
         try:
             resp = requests.post(url)
         except:
@@ -15,7 +17,7 @@ class ServerApi(object):
         return self.jsonloads(resp.text)
 
     def uploadResult(self, sn, step, result, descobj={}):
-        url = Setting.BASE_STEP_URL % {'sn': sn, 'step': step,
+        url = Setting.BASE_STEP_URL % {'sn': sn, 'step': Setting.getStepInt(step),
                                        'result': result}
         try:
             resp = requests.post(url, params={}, data=jdumps(descobj))
