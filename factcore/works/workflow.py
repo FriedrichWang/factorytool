@@ -35,17 +35,18 @@ class BaseWork(object):
     
     def onWork(self):
         ''' Invoke: 工作函数主体, 返回 PAUSE 时等待用户输入entry或者等待点击按钮'''
+        if self.ui_hasentry: return BaseWork.PAUSE
         ret, output = runcmd(self.cmd)
         if ret != 0:
             Log.e('[%s]runcmd failed -> %s' % (self.getName(), self.cmd))
             return BaseWork.FAILED
         m = compile(self.expect).search(output)
         if m:
-            Log.d('[%s](SUCCESS) %s -> match %s' % (self.getName(), self.expect, m.groups()))
+            Log.d('(SUCCESS)[%s] %s -> match %s' % (self.getName(), self.expect, m.groups()))
             return BaseWork.SUCCESS
         else:
             Log.raw('Output:\n%s' % output)
-            Log.e('[%s](FAILED) %s -> not match' % (self.getName(), self.expect))
+            Log.e('(FAILED)[%s] %s -> not match' % (self.getName(), self.expect))
             return BaseWork.FAILED
         
     def onEnd(self):
@@ -76,17 +77,18 @@ class BaseWork(object):
         return BaseWork.SUCCESS
     
     def onDebugWork(self):
+        if self.ui_hasentry: return BaseWork.PAUSE
         if Setting.DEBUG_SUCCESS:
             output = self.debugSuccessOutput()
         else:
             output = self.debugFailedOutput()
         m = compile(self.expect).search(output)
         if m:
-            Log.i('DebugWork!!![%s](SUCCESS) "%s" -> match %s' % (self.getName(), self.expect, m.groups()))
+            Log.i('(SUCCESS)DebugWork!!![%s] "%s" -> match %s' % (self.getName(), self.expect, m.groups()))
             return BaseWork.SUCCESS
         else:
             Log.raw('Output:\n%s' % output)
-            Log.e('DebugWork!!![%s](SUCCESS) "%s" -> not match' % (self.getName(), self.expect))
+            Log.e('(FAILED)DebugWork!!![%s] "%s" -> not match' % (self.getName(), self.expect))
             return BaseWork.FAILED
     
     def debugCheckFinishedFlags(self):
@@ -129,6 +131,7 @@ class Context(object):
     def reInitWorks(self):
         # debug check flags
         Log.d('reInitWorks')
+        self.curwork = None
         for work in self.works:
             work.debugCheckFinishedFlags()
 
@@ -147,6 +150,11 @@ class Context(object):
 
     def _start(self):
         Log.i('start do...')
+        # check previous status, if failed, break return
+        if self.curwork and self.curwork.result == BaseWork.FAILED:
+            self._endCurrentWork()
+            self.win.showRestartButton()
+            return
         if self.workiter is None:
             self.workiter = self.iterWork()
         while True:
@@ -154,7 +162,7 @@ class Context(object):
             if work == None:
                 self.reset()
                 break
-            Log.d(repr(work))
+            Log.d('%s->%s' % (work, BaseWork.ResultToName(work.result)))
             if work.result == BaseWork.PAUSE:
                 break
             elif work.result == BaseWork.FAILED:

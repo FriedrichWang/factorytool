@@ -1,6 +1,10 @@
 import sys
+from factcore.exceptions import cmdencode
+
 class Logger(object):
     def msg(self, prefix, msg):
+        if type(msg) is unicode:
+            msg = msg.encode(cmdencode)
         sys.stdout.write('%s %s' % (prefix, msg))
         sys.stdout.write('\n')
         sys.stdout.flush()

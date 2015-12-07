@@ -3,6 +3,7 @@ from re import compile
 from factcore.works.workflow import BaseWork
 from factcore.ui import BaseWorkUI
 from factcore.cmdwrapper import runcmd
+from factcore.logger import Log
 
 ## common step
 class WaitAdbWork(BaseWork):
@@ -33,13 +34,11 @@ class CheckSNWork(BaseWork):
         self.expect = r'success'
         self.ui_hasentry = True
         self.ui.setPauseText(u'请输入SN:')
-
-    def onWork(self):
-        return BaseWork.PAUSE
         
     def onContinue(self, pass_or_failed):
         param = self.ui.entry.get()
         sn = self.getSn()
+        Log.d(u'%s -> %s' % (self.getName(), repr(sn)))
         if sn != param:
             self.result = BaseWork.FAILED
         else:
