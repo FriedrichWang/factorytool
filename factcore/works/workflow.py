@@ -20,6 +20,8 @@ class BaseWork(object):
         self._flag_onBegin = False
         self._flag_onEnd = False
         self._flag_doWork = False
+        self.cmd = u'echo "success"'
+        self.expect = r'success'
         self.ui = uicls(self, ctx)
 
     def onInit(self):
@@ -197,12 +199,17 @@ class Context(object):
             raise RuntimeError('Can not get work with work(%s)\nworks(%s)' % \
                                (work, self.works))
         if iscontinue:
-            work.onContinue(work.result)
-            work.ui.onContinueUI(work.result)
+            if Setting.DEBUG_WORK:
+                if Setting.DEBUG_SUCCESS: work.result = BaseWork.SUCCESS
+                else: work.result = BaseWork.FAILED
+                sleep(Setting.DEBUG_WORK_INTERVAL)
+            else:
+                work.onContinue(work.result)
+                work.ui.onContinueUI(work.result)
             if work.result not in (BaseWork.SUCCESS, BaseWork.FAILED):
                 raise FactRuntimeError('(%s) onContinue should set works\'s ' % work \
                                         +'result(%s) to SUCCESS or FAILED' % \
-                                         BaseWork.ResultToName(work.result))
+                                        BaseWork.ResultToName(work.result))
         if work.result == BaseWork.SUCCESS:
             work.ui.onSuccessUI()
         elif work.result == BaseWork.FAILED:
