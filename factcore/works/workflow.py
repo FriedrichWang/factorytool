@@ -76,7 +76,9 @@ class BaseWork(object):
         return u'failed'
     
     def getDebugRet(self):
-        return BaseWork.SUCCESS
+        if self.ui_hasentry: return BaseWork.PAUSE
+        elif Setting.DEBUG_SUCCESS: return BaseWork.SUCCESS
+        else: return BaseWork.FAILED
     
     def onDebugWork(self):
         if self.ui_hasentry: return BaseWork.PAUSE
@@ -113,7 +115,6 @@ class BaseWork(object):
             return 'UNKOWN'
         else:
             return 'UNEXPECTED %s' % res
-
 
 class Context(object):
     def __init__(self, win):
@@ -180,7 +181,7 @@ class Context(object):
             if Setting.DEBUG_UI:
                 ret = work.getDebugRet()
                 sleep(Setting.DEBUG_WORK_INTERVAL)
-            if Setting.DEBUG_WORK:
+            elif Setting.DEBUG_WORK:
                 ret =  work.onDebugWork()
                 sleep(Setting.DEBUG_WORK_INTERVAL)
             else:
@@ -199,9 +200,10 @@ class Context(object):
             raise RuntimeError('Can not get work with work(%s)\nworks(%s)' % \
                                (work, self.works))
         if iscontinue:
-            if Setting.DEBUG_WORK:
-                if Setting.DEBUG_SUCCESS: work.result = BaseWork.SUCCESS
-                else: work.result = BaseWork.FAILED
+            if Setting.DEBUG_WORK or Setting.DEBUG_UI:
+                if work.result not in (BaseWork.SUCCESS, BaseWork.FAILED):
+                    if Setting.DEBUG_SUCCESS: work.result = BaseWork.SUCCESS
+                    else: work.result = BaseWork.FAILED
                 sleep(Setting.DEBUG_WORK_INTERVAL)
             else:
                 work.onContinue(work.result)

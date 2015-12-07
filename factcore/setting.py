@@ -1,7 +1,7 @@
 #encoding=utf8
 class BaseSetting(object):
-    DEBUG_UI = False  # 不执行 onWork 获取 getDebugRet作为结果, 只调试UI用
-    DEBUG_WORK = True # 执行 debugSuccessOutput 作为 output, 以 cmd 以及 expect 作为判断依据
+    DEBUG_UI = True  # 不执行 onWork 获取 getDebugRet作为结果, 只调试UI用
+    DEBUG_WORK = False # 执行 debugSuccessOutput 作为 output, 以  expect 作为判断依据
     DEBUG_SUCCESS = True # 是调试 success output 还是 failed output 情况
     DEBUG_WORK_INTERVAL = 0.3
     AUTO_START = True

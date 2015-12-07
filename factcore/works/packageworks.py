@@ -63,6 +63,9 @@ class UpdateCITWork(BaseWork):
         self.cmd = 'adb push cit.apk /system/app/cit.apk'
         self.expect = r'success'
 
+    def getDebugRet(self):
+        return BaseWork.PAUSE
+
 ## Step2
 class CITCheckWork(BaseWork):
     def __init__(self, ctx):
@@ -81,6 +84,3 @@ class ResetWork(BaseWork):
         super(ResetWork, self).__init__(u'重置', ctx)
         self.cmd = 'adb shell reboot recovery --reset'
         self.expect = 'success'
-        
-    def getDebugRet(self):
-        return BaseWork.PAUSE
