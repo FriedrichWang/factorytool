@@ -5,7 +5,7 @@ class BaseSetting(object):
     DEBUG_UI = False # 不执行 onWork 获取 getDebugRet作为结果, 只调试UI用
     DEBUG_WORK = False # 执行 debugSuccessOutput 作为 output, 以  expect 作为判断依据
     DEBUG_SUCCESS = False # 是调试 success output 还是 failed output 情况
-    DEBUG_WEB = True # 使用 ServerFakeApi 不对接服务器
+    DEBUG_WEB = False # 使用 ServerFakeApi 不对接服务器
     DEBUG_WORK_INTERVAL = 0.3
     AUTO_START = True
     CURRENT_STEP = 'PackCIT'
@@ -72,9 +72,8 @@ class PackCIT(BaseSetting):
     def getStepWorks(self):
         from factcore.works.packageworks import CITCheckWork, UpdateApkWork, \
             ResetWork, WaitAdbWork, UploadResult, GetSnWork, CheckStep, WifiCheck
-        #return [WaitAdbWork, GetSnWork, CheckStep, CITCheckWork, WifiCheck,
-        #        UploadResult]
-        return [WifiCheck, ]
+        return [WaitAdbWork, GetSnWork, CheckStep, CITCheckWork, WifiCheck,
+                UploadResult]
 
 BaseSetting.CLASS_MAP['PackCIT'] = PackCIT
 
