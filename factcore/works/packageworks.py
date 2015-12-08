@@ -127,11 +127,33 @@ class UpdateCITWork(BaseWork):
         ret, output = runcmd('adb shell rm "%s"' % Setting.DEVICE_CIT_RESULT_PATH)
         if ret != 0:
             Log.w('CIT RESULT not exists\n%s' % output)
-        # TODO: push other files, so
-        return BaseWork.onWork(self)
 
-    def getDebugRet(self):
-        return BaseWork.PAUSE
+        # TODO: push other files, so
+        cmds = []
+        cmds.append('adb remount')
+        cmds.append('adb push data/audio.primary.imx6.so /system/lib/hw/')
+        cmds.append('adb push data/libinputflinger.so /system/lib/')
+        success_snipptes = ['remount succeeded', 'KB/s',]
+        for cmd in cmds:
+            ret, output = runcmd(cmd)
+            Log.d(cmd)
+            output = output.strip()
+            if ret != 0:
+                self.err = output
+                return self.FAILED
+            # match success outputs
+            matchsnippet = False
+            for snippet in success_snipptes:
+                if snippet in output:
+                    matchsnippet = True
+                    break
+            if matchsnippet: continue
+
+            if output:
+                self.err = output
+                return self.FAILED
+
+        return super(UpdateCITWork, self).onWork()
 
 ## Step2
 class CITCheckWork(BaseWork):

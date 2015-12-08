@@ -43,6 +43,7 @@ class BaseWork(object):
         ret, output = runcmd(self.cmd)
         if ret != 0:
             Log.e('[%s]runcmd failed -> %s' % (self.getName(), self.cmd))
+            self.err = output
             return BaseWork.FAILED
         m = compile(self.expect).search(output)
         if m:
@@ -51,6 +52,7 @@ class BaseWork(object):
         else:
             Log.raw('Output:\n%s' % output)
             Log.e('(FAILED)[%s] %s -> not match' % (self.getName(), self.expect))
+            self.err = output
             return BaseWork.FAILED
         
     def onEnd(self):
@@ -104,6 +106,7 @@ class BaseWork(object):
         else:
             Log.raw('Output:\n%s' % output)
             Log.e('(FAILED)DebugWork!!![%s] "%s" -> not match' % (self.getName(), self.expect))
+            self.err = output
             return BaseWork.FAILED
     
     def debugCheckFinishedFlags(self):
