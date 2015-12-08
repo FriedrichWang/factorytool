@@ -78,6 +78,8 @@ class MainWindow():
         
     def showInfo(self, msg):
         if not msg: return
+        if type(msg) is unicode:
+            msg = msg.encode('utf8')
         msg = str(msg)
         self.infoarea.insert(END, msg)
         self.infoarea.insert(END, '\n')
