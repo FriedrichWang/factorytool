@@ -8,7 +8,7 @@ class BaseSetting(object):
     DEBUG_WEB = False # 使用 ServerFakeApi 不对接服务器
     DEBUG_WORK_INTERVAL = 0.3
     AUTO_START = True
-    CURRENT_STEP = 'PackCIT'
+    CURRENT_STEP = 'PackBurn'
     DEFAULT_FONT_SIZE = 12
     DEVICE_CIT_RESULT_PATH = '/data/citresult.txt'
     DEVICE_SN_PATH = '/etc/sn_number'
