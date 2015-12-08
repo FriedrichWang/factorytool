@@ -40,5 +40,21 @@ class ServerApi(object):
             from factcore.works.workflow import BaseWork
             return {'ret': BaseWork.FAILED, 'desc': 'Program exception %s' % \
                     traceback.format_exc()}
-    
-srvapi = ServerApi()
+
+class ServerFakeApi(object):
+    def checkStep(self, sn, step):
+        from factcore.works.workflow import BaseWork
+        return {'ret': BaseWork.SUCCESS}
+
+    def uploadResult(self, sn, step, result, descobj={}):
+        from factcore.works.workflow import BaseWork
+        return {'ret': BaseWork.SUCCESS}
+
+    def uploadFile(self, url, _file):
+        from factcore.works.workflow import BaseWork
+        return {'ret': BaseWork.SUCCESS}
+
+if Setting.DEBUG_WEB:
+    srvapi = ServerFakeApi()
+else:
+    srvapi = ServerApi()

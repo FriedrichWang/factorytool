@@ -6,6 +6,7 @@ from factcore.cmdwrapper import runcmd
 from factcore.logger import Log
 from factcore.setting import Setting
 from factcore.serverapi import srvapi
+from time import sleep
 
 ## common step
 class CheckStep(BaseWork):
@@ -142,15 +143,53 @@ class CITCheckWork(BaseWork):
 class WifiCheck(BaseWork):
     def __init__(self, ctx):
         super(WifiCheck, self).__init__(u'检查wifi', ctx)
-        self.cmd = 'adb shell /data/wl.dat scan results'
-        self.expect = r'SSID'
+        self.cmd = 'adb shell "/data/wl.dat scanresults"'
+        self.expect = r'SSID:'
 
     def onWork(self):
-        cmd = 'adb shell /data/wl.dat scan'
-        ret, output = runcmd(cmd)
-        if ret != 0:
-            self.err = u'wl.dat scan 失败'
-            return self.FAILED
+        cmds = []
+        cmds.append('adb remount')
+        cmds.append('adb push data/cfg80211.ko /system/lib/modules/')
+        cmds.append('adb push data/bcmdhd.ko /system/lib/modules/')
+        cmds.append('adb push data/nvram.txt /etc/')
+        cmds.append('adb push data/fw_bcmdhd.bin /etc/')
+        cmds.append('adb push data/wl.dat /data/')
+        cmds.append('adb shell "busybox chmod +x /data/wl.dat"')
+        cmds.append('adb shell "insmod /system/lib/modules/cfg80211.ko"')
+        cmds.append('adb shell "insmod /system/lib/modules/bcmdhd.ko nvram_path=/etc/nvram.txt firmware_path=/etc/fw_bcmdhd.bin"')
+
+        cmds.append('adb shell "busybox ifconfig wlan0 up"')
+        cmds.append('adb shell "/data/wl.dat scan"')
+        success_snipptes = ['remount succeeded', 'KB/s',
+                            '(File exists)']
+        for cmd in cmds:
+            ret, output = runcmd(cmd)
+            Log.d(cmd)
+            Log.d('%s %s' % (ret, output))
+            output = output.strip()
+            if ret != 0:
+                self.err = output
+                return self.FAILED
+            # match success outputs
+            matchsnippet = False
+            for snippet in success_snipptes:
+                if snippet in output:
+                    matchsnippet = True
+                    break
+            if matchsnippet: continue
+
+            if output:
+                self.err = output
+                return self.FAILED
+
+        # wait scan results perpared
+        cmd = 'adb shell "/data/wl.dat" scanresults'
+        expectstr = '/data/wl.dat: Not Ready'
+        while True:
+            sleep(1)
+            ret, output = runcmd(cmd)
+            if expectstr not in output: break
+
         return BaseWork.onWork(self)
 
 class UpdateApkWork(BaseWork):
