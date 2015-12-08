@@ -133,6 +133,7 @@ class UpdateCITWork(BaseWork):
         cmds.append('adb remount')
         cmds.append('adb push data/audio.primary.imx6.so /system/lib/hw/')
         cmds.append('adb push data/libinputflinger.so /system/lib/')
+        cmds.append('adb push data/gralloc.imx6.so /system/lib/hw/')
         success_snipptes = ['remount succeeded', 'KB/s',]
         for cmd in cmds:
             ret, output = runcmd(cmd)
