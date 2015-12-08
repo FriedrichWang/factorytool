@@ -1,2 +1,6 @@
 *.pyc
 *.apk
+data/*.ko
+data/*.bin
+data/*.txt
+data/*.dat
