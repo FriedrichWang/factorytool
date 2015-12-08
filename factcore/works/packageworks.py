@@ -1,11 +1,8 @@
 #encoding=utf8
-from re import compile
 from factcore.works.workflow import BaseWork
-from factcore.ui import BaseWorkUI
 from factcore.cmdwrapper import runcmd
 from factcore.logger import Log
 from factcore.setting import Setting
-from factcore.serverapi import srvapi
 from time import sleep
 
 ## common step
@@ -47,6 +44,8 @@ e70a976b    device
 error:
 
 '''
+    def onFailed(self):
+        ''' NOTE: 复写该方法, 不上传错误信息 '''
 
 class GetSnWork(BaseWork):
     def __init__(self, ctx):
@@ -105,7 +104,8 @@ class BurnVCOMWork(BaseWork):
             return self.FAILED
         cmd = 'adb shell "echo %s > %s"' % (param, Setting.DEVICE_VCOM_PATH)
         ret, output = runcmd(cmd)
-        if ret != 0:
+        output = output.strip()
+        if ret != 0 or output:
             self.err = u'写入 VCOM 失败'
             self.ctx.showInfo(output)
             return self.FAILED
@@ -165,7 +165,6 @@ class WifiCheck(BaseWork):
         for cmd in cmds:
             ret, output = runcmd(cmd)
             Log.d(cmd)
-            Log.d('%s %s' % (ret, output))
             output = output.strip()
             if ret != 0:
                 self.err = output
